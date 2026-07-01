@@ -21,7 +21,17 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-type Template = "quote_sent" | "quote_accepted" | "provider_en_route" | "generic";
+type Template =
+  | "welcome"
+  | "request_received"
+  | "quote_sent"
+  | "quote_accepted"
+  | "booking_confirmed"
+  | "provider_assigned"
+  | "provider_en_route"
+  | "provider_arrived"
+  | "job_completed"
+  | "generic";
 
 type Payload = {
   to: string;
@@ -32,12 +42,24 @@ type Payload = {
 
 function renderTemplate(name: Template | undefined, data: Record<string, unknown> = {}): string {
   switch (name) {
+    case "welcome":
+      return `Maximus: Welcome${data.name ? `, ${data.name}` : ""}! Your account is ready. Request a service anytime from the app.`;
+    case "request_received":
+      return `Maximus: We got your ${data.category ?? "service"} request. A quote will arrive shortly.`;
     case "quote_sent":
       return `Maximus: Your quote of $${data.amount ?? "—"} for ${data.category ?? "your request"} is ready. Open the app to accept.`;
     case "quote_accepted":
-      return `Maximus: Your booking is confirmed. We'll match you with a provider shortly.`;
+      return `Maximus: Booking confirmed. We're matching you with the best provider now.`;
+    case "booking_confirmed":
+      return `Maximus: Your booking is confirmed for ${data.when ?? "the scheduled time"}. Track live in the app.`;
+    case "provider_assigned":
+      return `Maximus: ${data.provider ?? "A provider"} has accepted your job. You'll hear from them soon.`;
     case "provider_en_route":
       return `Maximus: ${data.provider ?? "Your provider"} is on the way. ETA: ${data.eta ?? "shortly"}.`;
+    case "provider_arrived":
+      return `Maximus: ${data.provider ?? "Your provider"} has arrived at the location.`;
+    case "job_completed":
+      return `Maximus: Your ${data.category ?? "service"} is complete. Please rate your provider in the app.`;
     default:
       return (data.body as string) ?? "Notification from Maximus.";
   }

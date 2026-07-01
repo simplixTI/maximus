@@ -76,6 +76,10 @@ export function useCreateServiceRequest() {
           data: { category: input.category },
         });
       }
+      const phone = (user.phone as string | undefined) ?? (user.user_metadata?.phone as string | undefined);
+      if (phone) {
+        sendTransactionalSMS({ to: phone, template: "request_received", data: { category: input.category } });
+      }
       return data.id as string;
     },
     onSuccess: () => {

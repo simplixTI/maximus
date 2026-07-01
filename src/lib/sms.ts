@@ -1,6 +1,16 @@
 import { supabase } from "./supabase";
 
-export type SmsTemplate = "quote_sent" | "quote_accepted" | "provider_en_route" | "generic";
+export type SmsTemplate =
+  | "welcome"
+  | "request_received"
+  | "quote_sent"
+  | "quote_accepted"
+  | "booking_confirmed"
+  | "provider_assigned"
+  | "provider_en_route"
+  | "provider_arrived"
+  | "job_completed"
+  | "generic";
 
 interface SendArgs {
   to: string;

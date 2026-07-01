@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/lib/database.types";
+import { sendTransactionalEmail } from "@/lib/email";
+import { sendTransactionalSMS } from "@/lib/sms";
 
 interface AuthState {
   session: Session | null;
@@ -84,6 +86,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const updates: Record<string, unknown> = { full_name: fullName, phone };
       if (signupRole !== "client") updates.role = signupRole;
       await supabase.from("profiles").update(updates).eq("id", data.user.id);
+
+      const first = fullName.split(" ")[0];
+      if (email) {
+        sendTransactionalEmail({ to: email, template: "generic", subject: "Welcome to Maximus", data: { body: `Hi ${first}, your account is ready. Request a service anytime from the app.` } });
+      }
+      if (phone) {
+        sendTransactionalSMS({ to: phone, template: "welcome", data: { name: first } });
+      }
     }
     return { error: null };
   };
