@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   Briefcase,
   DollarSign,
-  ArrowLeft,
+  LogOut,
   ArrowUpRight,
   ArrowDownRight,
   Activity,
@@ -18,6 +18,7 @@ import {
   Sparkles,
   Radio,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -350,7 +351,13 @@ function KpiCard({
 // --- Page ------------------------------------------------------------------
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [now, setNow] = useState(new Date());
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login", { replace: true });
+  };
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30000);
@@ -392,8 +399,8 @@ const AdminDashboard = () => {
 
   return (
     <div className="relative min-h-screen bg-background pb-10">
-      {/* Ambient gradient blobs */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 overflow-hidden">
+      {/* Ambient gradient blobs — desktop only (would look like a gray band on mobile) */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-64 overflow-hidden md:block">
         <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-accent/10 blur-[100px]" />
         <div className="absolute -right-16 top-16 h-64 w-64 rounded-full bg-primary/10 blur-[110px]" />
       </div>
@@ -403,10 +410,11 @@ const AdminDashboard = () => {
         <div className="flex items-center justify-between px-6 pt-8 pb-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate("/")}
-              className="rounded-xl p-2 text-foreground/80 hover:bg-secondary hover:text-foreground"
+              onClick={handleSignOut}
+              aria-label="Sign out"
+              className="group flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card/60 text-foreground/80 transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <LogOut className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
             <div>
               <h1 className="font-display text-2xl font-bold leading-none text-foreground">

@@ -730,4 +730,61 @@ export function useAdminSendClientMessage() {
   });
 }
 
+// ============================================================================
+// Admin: user management
+// ============================================================================
+export function useAdminAllUsers() {
+  return useQuery({
+    queryKey: ["admin", "users", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, phone, role, avatar_url, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30000,
+  });
+}
+
+export function useChangeUserRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { user_id: string; role: "client" | "provider" | "admin" }) => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({ role: input.role })
+        .eq("id", input.user_id)
+        .select("id, role")
+        .single();
+      if (error) throw error;
+      insertNotification({
+        user_id: input.user_id,
+        type: "role_changed",
+        title: "Account role updated",
+        body: `Your role is now ${input.role}. Some features in the app may change.`,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "metrics"] });
+    },
+  });
+}
+
+export function useAdminResetUserPassword() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), {
+        redirectTo,
+      });
+      if (error) throw error;
+      return true;
+    },
+  });
+}
+
 export type { ServiceRequestRow, BookingRow, QuoteRow };

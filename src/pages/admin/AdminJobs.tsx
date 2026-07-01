@@ -259,7 +259,7 @@ const AdminJobs = () => {
 
   return (
     <div className="relative min-h-screen bg-background pb-10">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-52 overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-52 overflow-hidden md:block">
         <div className="absolute -left-16 top-0 h-52 w-52 rounded-full bg-primary/10 blur-[100px]" />
         <div className="absolute -right-16 top-12 h-52 w-52 rounded-full bg-accent/10 blur-[100px]" />
       </div>
