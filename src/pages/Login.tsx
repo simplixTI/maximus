@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Eye, EyeOff, ArrowLeft } from "lucide-react";
@@ -7,44 +7,29 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
-
-const TEST_ACCOUNTS = {
-  client: { email: "client@test.com", password: "test1234", role: "client" },
-  provider: { email: "provider@test.com", password: "test1234", role: "provider" },
-  admin: { email: "admin@test.com", password: "test1234", role: "admin" },
-};
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn, session, role } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  useEffect(() => {
+    if (!session || !role) return;
+    if (role === "client") navigate("/client/dashboard", { replace: true });
+    else if (role === "provider") navigate("/provider/dashboard", { replace: true });
+    else if (role === "admin") navigate("/admin", { replace: true });
+  }, [session, role, navigate]);
+
+  const handleLogin = async () => {
     setLoading(true);
-
-    setTimeout(() => {
-      const account = Object.values(TEST_ACCOUNTS).find(
-        (a) => a.email === email.toLowerCase().trim() && a.password === password
-      );
-
-      if (account) {
-        toast.success(`Logged in as ${account.role}`);
-        if (account.role === "client") navigate("/client/dashboard");
-        else if (account.role === "provider") navigate("/provider/dashboard");
-        else if (account.role === "admin") navigate("/admin");
-      } else {
-        toast.error("Invalid credentials. Use a test account below.");
-      }
-      setLoading(false);
-    }, 800);
-  };
-
-  const quickLogin = (type: keyof typeof TEST_ACCOUNTS) => {
-    const account = TEST_ACCOUNTS[type];
-    setEmail(account.email);
-    setPassword(account.password);
+    const { error } = await signIn(email.toLowerCase().trim(), password);
+    setLoading(false);
+    if (error) toast.error(error);
+    else toast.success("Signed in");
   };
 
   return (
@@ -135,26 +120,6 @@ const Login = () => {
           <button onClick={() => navigate("/client/signup")} className="text-accent hover:underline">Sign up</button>
         </p>
 
-        {/* Test Accounts */}
-        <div className="mt-10 rounded-2xl border border-border bg-card p-5">
-          <h3 className="mb-3 font-display text-sm font-semibold text-foreground">🧪 Test Accounts</h3>
-          <div className="space-y-2">
-            {Object.entries(TEST_ACCOUNTS).map(([key, acc]) => (
-              <button
-                key={key}
-                onClick={() => quickLogin(key as keyof typeof TEST_ACCOUNTS)}
-                className="flex w-full items-center justify-between rounded-xl bg-secondary px-4 py-3 text-left transition-colors hover:bg-muted"
-              >
-                <div>
-                  <div className="text-sm font-medium capitalize text-foreground">{key}</div>
-                  <div className="text-xs text-muted-foreground">{acc.email}</div>
-                </div>
-                <span className="text-xs text-accent">Use →</span>
-              </button>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">Password for all: <code className="rounded bg-secondary px-1.5 py-0.5 text-foreground">test1234</code></p>
-        </div>
       </motion.div>
     </div>
   );

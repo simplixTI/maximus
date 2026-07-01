@@ -5,12 +5,16 @@ import { ArrowLeft, Mail, Phone, User, MapPin, Camera, Eye, EyeOff } from "lucid
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import OTPVerification from "@/components/auth/OTPVerification";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 const ClientSignUp = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"form" | "otp" | "success">("form");
+  const { signUp } = useAuth();
+  const [step, setStep] = useState<"form" | "success">("form");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -31,13 +35,29 @@ const ClientSignUp = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      setStep("otp");
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+    setSubmitting(true);
+    const { error } = await signUp({
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      fullName: form.fullName.trim(),
+      phone: form.phone,
+      role: "client",
+    });
+    if (error) {
+      setSubmitting(false);
+      toast.error(error);
+      return;
     }
-  };
-
-  const handleOTPVerified = () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData.user) {
+      await supabase.from("client_profiles").upsert({
+        user_id: userData.user.id,
+        address: form.address.trim(),
+      });
+    }
+    setSubmitting(false);
     setStep("success");
     setTimeout(() => navigate("/client/dashboard"), 1500);
   };
@@ -176,27 +196,16 @@ const ClientSignUp = () => {
             {/* Submit */}
             <Button
               onClick={handleSubmit}
-              className="mt-8 h-14 w-full rounded-xl bg-gradient-orange font-display text-lg font-semibold text-accent-foreground shadow-orange transition-all hover:scale-[1.01] active:scale-[0.99]"
+              disabled={submitting}
+              className="mt-8 h-14 w-full rounded-xl bg-gradient-orange font-display text-lg font-semibold text-accent-foreground shadow-orange transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
             >
-              Create Account
+              {submitting ? "Creating…" : "Create Account"}
             </Button>
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <button onClick={() => navigate("/login")} className="text-accent hover:underline">Sign in</button>
             </p>
-          </motion.div>
-        )}
-
-        {step === "otp" && (
-          <motion.div
-            key="otp"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="flex-1 px-6 py-12"
-          >
-            <OTPVerification phone={form.phone} onVerified={handleOTPVerified} onBack={() => setStep("form")} />
           </motion.div>
         )}
 
