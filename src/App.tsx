@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import InstallPrompt from "@/components/InstallPrompt";
+import RealtimeNotifier from "@/components/RealtimeNotifier";
 
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -67,6 +68,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <InstallPrompt />
+          <RealtimeNotifier />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />

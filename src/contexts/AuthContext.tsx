@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/lib/database.types";
 import { sendTransactionalEmail } from "@/lib/email";
 import { sendTransactionalSMS } from "@/lib/sms";
+import { insertNotification } from "@/hooks/notifications";
 
 interface AuthState {
   session: Session | null;
@@ -94,6 +95,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (phone) {
         sendTransactionalSMS({ to: phone, template: "welcome", data: { name: first } });
       }
+      insertNotification({
+        user_id: data.user.id,
+        type: "welcome",
+        title: `Welcome${first ? `, ${first}` : ""}!`,
+        body: "Your account is ready. Request a service anytime from the app.",
+      });
     }
     return { error: null };
   };

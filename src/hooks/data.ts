@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/lib/database.types";
 import { sendTransactionalEmail } from "@/lib/email";
 import { sendTransactionalSMS } from "@/lib/sms";
+import { insertNotification } from "@/hooks/notifications";
 
 type ServiceRequestRow = Database["public"]["Tables"]["service_requests"]["Row"];
 type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
@@ -80,6 +81,12 @@ export function useCreateServiceRequest() {
       if (phone) {
         sendTransactionalSMS({ to: phone, template: "request_received", data: { category: input.category } });
       }
+      insertNotification({
+        user_id: user.id,
+        type: "request_received",
+        title: "Request received",
+        body: `We're preparing a quote for your ${input.category} request.`,
+      });
       return data.id as string;
     },
     onSuccess: () => {
@@ -134,16 +141,26 @@ export function useCreateQuote() {
           notes: input.notes ?? null,
           status: "pending",
         })
-        .select("id, request:service_requests(category, client:profiles(email, phone))")
+        .select("id, request:service_requests(client_id, category, client:profiles(email, phone))")
         .single();
       if (error) throw error;
-      const req = data.request as { category?: string; client?: { email?: string; phone?: string } } | null;
+      const req = data.request as
+        | { client_id?: string; category?: string; client?: { email?: string; phone?: string } }
+        | null;
       const tplData = { amount: input.amount.toFixed(2), category: req?.category ?? "your request" };
       if (req?.client?.email) {
         sendTransactionalEmail({ to: req.client.email, template: "quote_sent", data: tplData });
       }
       if (req?.client?.phone) {
         sendTransactionalSMS({ to: req.client.phone, template: "quote_sent", data: tplData });
+      }
+      if (req?.client_id) {
+        insertNotification({
+          user_id: req.client_id,
+          type: "quote_sent",
+          title: `New quote: $${input.amount.toFixed(2)}`,
+          body: `${req.category ?? "Your request"} — tap to review and accept.`,
+        });
       }
       return data.id as string;
     },
@@ -206,6 +223,12 @@ export function useAcceptQuote() {
       if (phone) {
         sendTransactionalSMS({ to: phone, template: "quote_accepted" });
       }
+      insertNotification({
+        user_id: user.id,
+        type: "quote_accepted",
+        title: "Booking confirmed",
+        body: "Your quote was accepted. We're matching you with a provider now.",
+      });
       return booking.id as string;
     },
     onSuccess: () => {

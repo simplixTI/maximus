@@ -8,6 +8,7 @@ import PageTransition from "@/components/shared/PageTransition";
 import AnimatedList from "@/components/shared/AnimatedList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBookings, useMyPendingQuotes } from "@/hooks/data";
+import { useUnreadCount } from "@/hooks/notifications";
 import { formatDistanceToNow } from "date-fns";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -24,6 +25,8 @@ const ClientDashboard = () => {
   const { user } = useAuth();
   const bookingsQ = useMyBookings();
   const quotesQ = useMyPendingQuotes();
+  const unreadQ = useUnreadCount();
+  const unread = unreadQ.data ?? 0;
 
   const bookings = bookingsQ.data ?? [];
   const active = bookings.filter((b) => b.status !== "completed" && b.status !== "cancelled");
@@ -46,8 +49,10 @@ const ClientDashboard = () => {
           </div>
           <button onClick={() => navigate("/client/notifications")} className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground">
             <Bell className="h-5 w-5" />
-            {pendingQuotes.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-accent border-2 border-background" />
+            {unread > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-accent-foreground border-2 border-background">
+                {unread > 9 ? "9+" : unread}
+              </span>
             )}
           </button>
         </div>
