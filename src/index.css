@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 40 20% 90%;
+
+    --card: 220 30% 6%;
+    --card-foreground: 40 20% 90%;
+
+    --popover: 220 30% 6%;
+    --popover-foreground: 40 20% 90%;
+
+    --primary: 213 70% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 25% 10%;
+    --secondary-foreground: 40 20% 90%;
+
+    --muted: 220 20% 12%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 38 90% 55%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 15%;
+    --input: 220 15% 15%;
+    --ring: 38 90% 55%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-primary: 38 90% 55%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 220 25% 10%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 220 15% 15%;
+    --sidebar-ring: 38 90% 55%;
+
+    --navy: 213 70% 30%;
+    --navy-deep: 220 50% 6%;
+    --orange: 38 90% 55%;
+    --orange-glow: 38 95% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-gradient-orange {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(38, 90%, 55%), hsl(42, 95%, 65%));
+  }
+
+  .bg-gradient-navy {
+    background: linear-gradient(180deg, hsl(0, 0%, 0%) 0%, hsl(220, 30%, 6%) 100%);
+  }
+
+  .bg-gradient-orange {
+    background: linear-gradient(135deg, hsl(38, 90%, 55%) 0%, hsl(42, 95%, 62%) 100%);
+  }
+
+  .shadow-orange {
+    box-shadow: 0 8px 32px -8px hsla(38, 90%, 55%, 0.4);
+  }
+
+  .shadow-navy {
+    box-shadow: 0 8px 32px -8px hsla(220, 60%, 10%, 0.6);
+  }
+}
