@@ -5,10 +5,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import InstallPrompt from "@/components/InstallPrompt";
 
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
+import Install from "./pages/Install.tsx";
 
 // Client
 import ClientSignUp from "./pages/client/ClientSignUp.tsx";
@@ -64,9 +66,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <InstallPrompt />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/install" element={<Install />} />
 
             {/* Client */}
             <Route path="/client/signup" element={<ClientSignUp />} />
