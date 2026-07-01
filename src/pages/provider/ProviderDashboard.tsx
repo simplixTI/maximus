@@ -9,6 +9,7 @@ import PageTransition from "@/components/shared/PageTransition";
 import AnimatedList from "@/components/shared/AnimatedList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProviderJobs, useProviderEarnings } from "@/hooks/data";
+import { useBroadcastMyLocation } from "@/hooks/tracking";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -44,6 +45,8 @@ const ProviderDashboard = () => {
       toast.success(next ? "You're online — accepting jobs" : "You're offline");
     }
   };
+
+  useBroadcastMyLocation(online);
 
   const jobs = jobsQ.data ?? [];
   const active = jobs.filter((j) => j.status !== "completed" && j.status !== "cancelled");
