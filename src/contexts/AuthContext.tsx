@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const first = fullName.split(" ")[0];
       if (email) {
-        sendTransactionalEmail({ to: email, template: "generic", subject: "Welcome to Maximus", data: { body: `Hi ${first}, your account is ready. Request a service anytime from the app.` } });
+        sendTransactionalEmail({ to: email, template: "welcome", data: { name: first } });
       }
       if (phone) {
         sendTransactionalSMS({ to: phone, template: "welcome", data: { name: first } });

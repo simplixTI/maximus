@@ -1,32 +1,47 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, AlertCircle, X } from "lucide-react";
+import { Upload, FileText, AlertCircle, X, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
+import { useAddProviderDocument } from "@/hooks/upload";
 
 interface Props { onNext: () => void; }
 
 interface DocFile {
   name: string;
   preview?: string;
+  path?: string;
+  status: "uploading" | "uploaded" | "failed";
 }
 
 const REQUIRED_DOCS = [
-  { key: "dlFront", label: "Driver's License (Front)", accept: ".jpg,.jpeg,.png,.pdf" },
-  { key: "dlBack", label: "Driver's License (Back)", accept: ".jpg,.jpeg,.png,.pdf" },
+  { key: "dl_front", label: "Driver's License (Front)", accept: ".jpg,.jpeg,.png,.pdf" },
+  { key: "dl_back", label: "Driver's License (Back)", accept: ".jpg,.jpeg,.png,.pdf" },
   { key: "liability", label: "General Liability Insurance", accept: ".jpg,.jpeg,.png,.pdf" },
-  { key: "workers", label: "Workers' Compensation Insurance", accept: ".jpg,.jpeg,.png,.pdf" },
+  { key: "workers_comp", label: "Workers' Compensation Insurance", accept: ".jpg,.jpeg,.png,.pdf" },
   { key: "exemption", label: "Exemption Certificate (if applicable)", accept: ".jpg,.jpeg,.png,.pdf", optional: true },
 ];
 
 const StepDocuments = ({ onNext }: Props) => {
   const [docs, setDocs] = useState<Record<string, DocFile | null>>({});
+  const addDoc = useAddProviderDocument();
 
-  const handleFile = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setDocs((d) => ({
-        ...d,
-        [key]: { name: file.name, preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined },
-      }));
+    if (!file) return;
+    setDocs((d) => ({
+      ...d,
+      [key]: {
+        name: file.name,
+        preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined,
+        status: "uploading",
+      },
+    }));
+    try {
+      const path = await addDoc.mutateAsync({ type: key, file });
+      setDocs((d) => ({ ...d, [key]: { ...(d[key] as DocFile), path, status: "uploaded" } }));
+    } catch (err) {
+      setDocs((d) => ({ ...d, [key]: { ...(d[key] as DocFile), status: "failed" } }));
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     }
   };
 
@@ -34,7 +49,7 @@ const StepDocuments = ({ onNext }: Props) => {
     setDocs((d) => ({ ...d, [key]: null }));
   };
 
-  const requiredUploaded = REQUIRED_DOCS.filter((d) => !d.optional).every((d) => docs[d.key]);
+  const requiredUploaded = REQUIRED_DOCS.filter((d) => !d.optional).every((d) => docs[d.key]?.status === "uploaded");
 
   return (
     <div className="space-y-4">
@@ -69,7 +84,20 @@ const StepDocuments = ({ onNext }: Props) => {
                   <FileText className="h-5 w-5 text-accent" />
                 </div>
               )}
-              <span className="flex-1 truncate text-sm text-foreground">{docs[key]!.name}</span>
+              <div className="flex-1 min-w-0">
+                <span className="block truncate text-sm text-foreground">{docs[key]!.name}</span>
+                <span className={`text-[10px] ${
+                  docs[key]!.status === "uploaded" ? "text-green-500" :
+                  docs[key]!.status === "failed" ? "text-destructive" :
+                  "text-muted-foreground"
+                }`}>
+                  {docs[key]!.status === "uploading" && "Uploading…"}
+                  {docs[key]!.status === "uploaded" && "Uploaded"}
+                  {docs[key]!.status === "failed" && "Failed — retry"}
+                </span>
+              </div>
+              {docs[key]!.status === "uploading" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+              {docs[key]!.status === "uploaded" && <Check className="h-4 w-4 text-green-500" />}
               <button onClick={() => removeFile(key)} className="rounded-lg p-1 hover:bg-card">
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>

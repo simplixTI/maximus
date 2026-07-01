@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-export type EmailTemplate = "quote_sent" | "quote_accepted" | "request_received" | "generic";
+export type EmailTemplate = "welcome" | "quote_sent" | "quote_accepted" | "request_received" | "generic";
 
 interface SendArgs {
   to: string | string[];
