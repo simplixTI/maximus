@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +13,25 @@ type QuoteRow = Database["public"]["Tables"]["quotes"]["Row"];
 
 export function useMyBookings() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`bookings-mine-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings", filter: `client_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["bookings"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, qc]);
+
   return useQuery({
     queryKey: ["bookings", "mine", user?.id],
     enabled: !!user,
@@ -30,6 +50,34 @@ export function useMyBookings() {
 }
 
 export function useBooking(id: string | undefined) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`booking-one-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings", filter: `id=eq.${id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["bookings", "one", id] });
+          qc.invalidateQueries({ queryKey: ["bookings", "mine"] });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "booking_status_events", filter: `booking_id=eq.${id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["booking_status_events", id] });
+          qc.invalidateQueries({ queryKey: ["bookings", "one", id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, qc]);
+
   return useQuery({
     queryKey: ["bookings", "one", id],
     enabled: !!id,
@@ -546,6 +594,138 @@ export function useReviewForBooking(booking_id: string | undefined) {
         .maybeSingle();
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+// ============================================================================
+// Admin: jobs management
+// ============================================================================
+export function useAdminAllBookings() {
+  return useQuery({
+    queryKey: ["admin", "bookings", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          `id, status, created_at, started_at, completed_at, provider_id, client_id,
+           request:service_requests(id, category, description, address),
+           quote:quotes(amount),
+           client:profiles(id, full_name, email, phone),
+           provider:provider_profiles(user_id, business_name, rating_avg,
+             user:profiles(full_name, phone, email))`,
+        )
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 15000,
+  });
+}
+
+export function useBookingStatusEvents(booking_id: string | undefined) {
+  return useQuery({
+    queryKey: ["booking_status_events", booking_id],
+    enabled: !!booking_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("booking_status_events")
+        .select("id, status, notes, created_at")
+        .eq("booking_id", booking_id!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useAvailableProviders() {
+  return useQuery({
+    queryKey: ["providers", "available"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("provider_profiles")
+        .select("user_id, business_name, rating_avg, jobs_completed, online, verified, user:profiles(full_name, phone)")
+        .eq("verified", true)
+        .order("rating_avg", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 60000,
+  });
+}
+
+export function useReassignProvider() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { booking_id: string; provider_id: string }) => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .update({ provider_id: input.provider_id })
+        .eq("id", input.booking_id)
+        .select("id, client_id, request:service_requests(category)")
+        .single();
+      if (error) throw error;
+
+      await supabase.from("booking_status_events").insert({
+        booking_id: input.booking_id,
+        status: "confirmed",
+        notes: `Reassigned to provider ${input.provider_id}`,
+      });
+
+      const req = data.request as { category?: string } | null;
+      if (data.client_id) {
+        insertNotification({
+          user_id: data.client_id,
+          type: "provider_assigned",
+          title: "Provider reassigned",
+          body: `Your ${req?.category ?? "service"} was reassigned to another provider.`,
+        });
+      }
+      insertNotification({
+        user_id: input.provider_id,
+        type: "provider_assigned",
+        title: "New job assigned",
+        body: `You've been assigned a ${req?.category ?? "service"} job.`,
+      });
+      return data.id as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: ["admin", "bookings"] });
+    },
+  });
+}
+
+export function useAdminSendClientMessage() {
+  return useMutation({
+    mutationFn: async (input: {
+      client_id: string;
+      phone?: string;
+      email?: string;
+      full_name?: string;
+      title: string;
+      body: string;
+    }) => {
+      insertNotification({
+        user_id: input.client_id,
+        type: "admin_message",
+        title: input.title,
+        body: input.body,
+      });
+      if (input.phone) {
+        sendTransactionalSMS({ to: input.phone, template: "generic", data: { body: `Maximus: ${input.body}` } });
+      }
+      if (input.email) {
+        sendTransactionalEmail({
+          to: input.email,
+          template: "generic",
+          subject: input.title,
+          data: { body: input.body, name: input.full_name },
+        });
+      }
+      return true;
     },
   });
 }
