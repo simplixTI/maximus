@@ -29,6 +29,98 @@ export function useMyBookings() {
   });
 }
 
+export function useBooking(id: string | undefined) {
+  return useQuery({
+    queryKey: ["bookings", "one", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          "id, status, created_at, started_at, completed_at, provider_id, client_id, request:service_requests(id, category, description, address, scheduled_at), quote:quotes(amount, scope), client:profiles(full_name, email, phone)"
+        )
+        .eq("id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+type NextBookingStatus = "en_route" | "arrived" | "in_progress" | "completed" | "cancelled";
+
+export function useUpdateBookingStatus() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { booking_id: string; status: NextBookingStatus; notes?: string }) => {
+      if (!user) throw new Error("Not authenticated");
+      const patch: Record<string, unknown> = { status: input.status };
+      if (input.status === "in_progress") patch.started_at = new Date().toISOString();
+      if (input.status === "completed") patch.completed_at = new Date().toISOString();
+
+      const { data: booking, error } = await supabase
+        .from("bookings")
+        .update(patch)
+        .eq("id", input.booking_id)
+        .select("id, client_id, request:service_requests(category), client:profiles(email, phone, full_name)")
+        .single();
+      if (error) throw error;
+
+      await supabase.from("booking_status_events").insert({
+        booking_id: input.booking_id,
+        status: input.status,
+        notes: input.notes ?? null,
+      });
+
+      const client = booking.client as { email?: string; phone?: string; full_name?: string } | null;
+      const req = booking.request as { category?: string } | null;
+      const providerName = (user.user_metadata?.full_name as string | undefined) ?? "Your provider";
+
+      const smsMap: Partial<Record<NextBookingStatus, "provider_en_route" | "provider_arrived" | "job_completed">> = {
+        en_route: "provider_en_route",
+        arrived: "provider_arrived",
+        completed: "job_completed",
+      };
+      const notifMap: Partial<Record<NextBookingStatus, { title: string; body: string; type: "provider_en_route" | "provider_arrived" | "job_completed" | "booking_confirmed" }>> = {
+        en_route: { type: "provider_en_route", title: "Provider on the way", body: `${providerName} is heading to you.` },
+        arrived: { type: "provider_arrived", title: "Provider arrived", body: `${providerName} has arrived.` },
+        in_progress: { type: "booking_confirmed", title: "Work started", body: "The job is now in progress." },
+        completed: { type: "job_completed", title: "Job completed", body: "Please rate your experience in the app." },
+        cancelled: { type: "booking_confirmed", title: "Booking cancelled", body: "This booking was cancelled." },
+      };
+
+      if (booking.client_id) {
+        const notif = notifMap[input.status];
+        if (notif) {
+          insertNotification({ user_id: booking.client_id, type: notif.type, title: notif.title, body: notif.body });
+        }
+      }
+      const smsTemplate = smsMap[input.status];
+      if (smsTemplate && client?.phone) {
+        sendTransactionalSMS({
+          to: client.phone,
+          template: smsTemplate,
+          data: { provider: providerName, category: req?.category ?? "service" },
+        });
+      }
+      if (input.status === "completed" && client?.email) {
+        sendTransactionalEmail({
+          to: client.email,
+          template: "generic",
+          subject: "Job completed",
+          data: { body: `Your ${req?.category ?? "service"} is complete. Please rate your provider in the app.` },
+        });
+      }
+      return booking.id as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: ["earnings"] });
+    },
+  });
+}
+
 export function useProviderJobs() {
   const { user } = useAuth();
   return useQuery({
