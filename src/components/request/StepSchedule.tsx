@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import type { ServiceRequestData } from "@/pages/client/ServiceRequest";
 import type { NavigateFunction } from "react-router-dom";
+import { useCreateServiceRequest } from "@/hooks/data";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TIME_SLOTS = [
   "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM",
@@ -22,21 +25,56 @@ interface Props {
   navigate: NavigateFunction;
 }
 
+function combineDateAndSlot(date: Date | undefined, slot: string): string | null {
+  if (!date) return null;
+  const m = slot.match(/^(\d+):(\d+)\s(AM|PM)$/i);
+  if (!m) return null;
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  if (/pm/i.test(m[3]) && h !== 12) h += 12;
+  if (/am/i.test(m[3]) && h === 12) h = 0;
+  const d = new Date(date);
+  d.setHours(h, min, 0, 0);
+  return d.toISOString();
+}
+
 const StepSchedule = ({ data, update, navigate }: Props) => {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const createRequest = useCreateServiceRequest();
+  const { user } = useAuth();
 
   const isAsap = data.intentType === "asap";
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    toast.success("Service request submitted!");
-    setTimeout(() => {
-      if (isAsap) {
-        navigate("/client/tracking/1");
-      } else {
-        navigate("/client/bookings");
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      let address = "";
+      if (user) {
+        const { data: cp } = await supabase
+          .from("client_profiles")
+          .select("address")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        address = cp?.address ?? "Address on file";
       }
-    }, 2000);
+      const scheduled_at = isAsap ? null : combineDateAndSlot(data.scheduledDate, data.scheduledTime);
+      await createRequest.mutateAsync({
+        category: data.categories[0] ?? "general",
+        description:
+          data.description ||
+          `${data.propertyType} · ${data.categories.join(", ")} · urgency: ${data.urgency}`,
+        address,
+        scheduled_at,
+      });
+      setSubmitted(true);
+      toast.success("Request submitted — waiting for quote");
+      setTimeout(() => navigate("/client/bookings"), 1800);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to submit request");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const canSubmit = isAsap || (data.scheduledDate && data.scheduledTime);
@@ -159,10 +197,10 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
 
       <Button
         onClick={handleSubmit}
-        disabled={!canSubmit}
+        disabled={!canSubmit || submitting}
         className="h-14 w-full rounded-xl bg-gradient-orange font-display text-lg font-semibold text-accent-foreground shadow-orange disabled:opacity-50"
       >
-        {isAsap ? "Request Now" : "Submit Request"}
+        {submitting ? "Submitting…" : isAsap ? "Request Now" : "Submit Request"}
       </Button>
     </div>
   );

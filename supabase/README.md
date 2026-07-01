@@ -53,3 +53,52 @@ const { data } = await supabase.rpc("providers_within_radius", {
   radius_m: 20000,
 });
 ```
+
+## Email via Resend
+
+Transactional emails (quote sent, quote accepted, request received) go through the
+`send-email` Edge Function, which calls the Resend HTTP API. Auth emails
+(confirm signup, magic link, password reset) should be routed through Resend
+by configuring SMTP in the Supabase Dashboard.
+
+### 1. Deploy the Edge Function
+
+```bash
+supabase functions deploy send-email --no-verify-jwt
+```
+
+### 2. Set secrets
+
+```bash
+supabase secrets set RESEND_API_KEY=re_UzasgooB_5Go73PYrS498kvEEp1CMZxVg
+supabase secrets set EMAIL_FROM="Maximus <onboarding@resend.dev>"
+```
+
+Once you verify a real sending domain on Resend, replace the `EMAIL_FROM`
+address (e.g. `Maximus <no-reply@maximus.com>`).
+
+### 3. Route Auth emails through Resend (SMTP)
+
+**Dashboard → Project Settings → Auth → SMTP Settings** → Enable Custom SMTP:
+
+| Field    | Value                                           |
+| -------- | ----------------------------------------------- |
+| Host     | `smtp.resend.com`                               |
+| Port     | `465`                                           |
+| Username | `resend`                                        |
+| Password | `re_UzasgooB_5Go73PYrS498kvEEp1CMZxVg`          |
+| Sender email | `onboarding@resend.dev` (or your verified domain) |
+| Sender name  | `Maximus`                                   |
+
+Save. From now on, every signup / magic-link / reset email sent by Supabase
+Auth is delivered by Resend instead of Supabase's default SMTP.
+
+### 4. Verify
+
+```bash
+supabase functions invoke send-email --body '{
+  "to": "you@example.com",
+  "template": "quote_sent",
+  "data": { "amount": "250.00", "category": "plumbing" }
+}'
+```
