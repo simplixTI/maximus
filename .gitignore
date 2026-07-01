@@ -25,6 +25,8 @@ supabase/.temp
 # E2E outputs
 e2e/screenshots/
 e2e/screenshots-validation/
+e2e/screenshots-admin/
+e2e/screenshots-mvp/
 
 # Editor directories and files
 .vscode/*
