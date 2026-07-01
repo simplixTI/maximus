@@ -484,65 +484,178 @@ const AdminDashboard = () => {
           ))}
         </motion.div>
 
-        {/* KPI Grid */}
+        {/* HERO — Revenue card w/ embedded chart + gold arc echoing logo swoosh */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-6 mt-4 relative overflow-hidden rounded-3xl border border-accent/25 bg-gradient-to-br from-card via-card to-accent/[0.05] p-5"
+        >
+          {/* Gold arc — echoes Maximus logo arrow */}
+          <svg
+            className="pointer-events-none absolute -right-6 -top-8 h-40 w-56 opacity-40"
+            viewBox="0 0 200 160"
+            fill="none"
+            aria-hidden
+          >
+            <defs>
+              <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="hsl(38, 90%, 55%)" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="hsl(42, 95%, 65%)" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0 140 Q 60 40 200 20"
+              stroke="url(#arcGrad)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <circle cx="200" cy="20" r="3" fill="hsl(42, 95%, 65%)" />
+          </svg>
+
+          <div className="relative flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent/80">
+                Revenue · Month to date
+              </p>
+              <p className="mt-1 font-display text-[40px] font-bold leading-none tabular-nums tracking-tight text-foreground">
+                {m ? fmtMoney.format(m.revenueMtd) : "—"}
+              </p>
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <span>
+                  7-day{" "}
+                  <span className="text-foreground/90 tabular-nums">
+                    {m ? fmtMoney.format(m.revenue7d.reduce((a, d) => a + d.value, 0)) : "—"}
+                  </span>
+                </span>
+                {m && <DeltaChip pct={m.revenueDeltaPct} />}
+              </div>
+            </div>
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-accent/30"
+              style={{ background: "linear-gradient(135deg, hsl(38, 90%, 55%, 0.18), hsl(42, 95%, 65%, 0.04))" }}
+            >
+              <DollarSign className="h-5 w-5 text-accent" />
+            </div>
+          </div>
+
+          {/* Embedded chart */}
+          <div className="relative -mx-1 mt-4 h-24">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={m?.revenue7d ?? []} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="revFillHero" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(38, 90%, 55%)" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="hsl(38, 90%, 55%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="day"
+                  stroke="hsl(220, 10%, 40%)"
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={9}
+                  tick={{ dy: 2 }}
+                />
+                <YAxis hide />
+                <Tooltip
+                  cursor={{ stroke: "hsl(38, 90%, 55%)", strokeOpacity: 0.3, strokeWidth: 1 }}
+                  contentStyle={{
+                    background: "hsl(220, 30%, 6%)",
+                    border: "1px solid hsl(38, 90%, 55%, 0.4)",
+                    borderRadius: "12px",
+                    fontSize: 12,
+                    padding: "6px 10px",
+                  }}
+                  labelStyle={{ color: "hsl(220, 10%, 50%)", fontSize: 10 }}
+                  formatter={(v: number) => [fmtMoney.format(v), "Revenue"]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="hsl(38, 90%, 55%)"
+                  strokeWidth={2}
+                  fill="url(#revFillHero)"
+                  dot={{ fill: "hsl(38, 90%, 55%)", r: 2.5, strokeWidth: 0 }}
+                  activeDot={{ r: 4, fill: "hsl(42, 95%, 65%)", stroke: "hsl(0, 0%, 0%)", strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+
+        {/* Compact stats strip — 3 tight vitals (Users / Approvals / Jobs) */}
         <motion.div
           initial="hidden"
           animate="visible"
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.06 } },
-          }}
-          className="mt-4 grid grid-cols-2 gap-3 px-6"
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.05, delayChildren: 0.25 } } }}
+          className="mx-6 mt-3 grid grid-cols-3 gap-2"
         >
           {[
             {
               icon: Users,
-              label: "Total Users",
+              label: "Users",
               value: m ? fmtInt.format(m.totalUsers) : "—",
-              spark: m?.usersSpark,
-              color: cyan,
+              tint: cyan,
               delta: m?.usersDeltaPct,
+              spark: m?.usersSpark,
             },
             {
               icon: ShieldCheck,
-              label: "Pending Approvals",
+              label: "Approvals",
               value: m ? fmtInt.format(m.pendingApprovals) : "—",
-              color: orange,
+              tint: orange,
               live: (m?.pendingApprovals ?? 0) > 0,
             },
             {
               icon: Briefcase,
-              label: "Active Jobs",
+              label: "Active jobs",
               value: m ? fmtInt.format(m.activeJobs) : "—",
-              spark: m?.jobsSpark,
-              color: emerald,
+              tint: emerald,
               live: (m?.activeJobs ?? 0) > 0,
+              spark: m?.jobsSpark,
             },
-            {
-              icon: DollarSign,
-              label: "Revenue MTD",
-              value: m ? fmtMoney.format(m.revenueMtd) : "—",
-              spark: m?.revenueSpark,
-              color: orange,
-              delta: m?.revenueDeltaPct,
-            },
-          ].map((kpi, i) => (
+          ].map((s, i) => (
             <motion.div
               key={i}
-              variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              variants={{ hidden: { opacity: 0, y: 6 }, visible: { opacity: 1, y: 0 } }}
+              className="group relative overflow-hidden rounded-xl border border-border bg-card/50 px-3 py-2.5 transition-colors hover:border-accent/30"
             >
-              <KpiCard {...kpi} />
+              {s.spark && s.spark.some((v) => v !== 0) && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 opacity-40">
+                  <Sparkline data={s.spark} color={s.tint} />
+                </div>
+              )}
+              <div className="relative flex items-center gap-1.5">
+                <s.icon className="h-3 w-3" style={{ color: s.tint }} />
+                <p className="font-display text-base font-bold tabular-nums leading-none text-foreground">
+                  {s.value}
+                </p>
+                {s.live ? (
+                  <LivePulse color={s.tint} />
+                ) : s.delta !== undefined ? (
+                  <span
+                    className="ml-auto rounded-full px-1 py-0.5 text-[8px] font-bold tabular-nums"
+                    style={{ background: `${s.tint}15`, color: s.tint }}
+                  >
+                    {s.delta >= 0 ? "↑" : "↓"}
+                    {Math.abs(s.delta).toFixed(0)}%
+                  </span>
+                ) : null}
+              </div>
+              <p className="relative mt-1 truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+                {s.label}
+              </p>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Revenue Chart */}
+        {/* Placeholder — keeps existing "Revenue Chart section" removed cleanly */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-6 mt-4 overflow-hidden rounded-2xl border border-border bg-card/70 p-4 backdrop-blur"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="hidden"
         >
           <div className="mb-1 flex items-center justify-between">
             <div>

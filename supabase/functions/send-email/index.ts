@@ -30,28 +30,52 @@ type Payload = {
   reply_to?: string;
 };
 
-const LOGO_URL = "https://maximussolutions.app/icons/icon-192.png";
+const LOGO_URL = "https://maximussolutions.app/logo.png";
 const APP_URL = "https://maximussolutions.app";
 
-function shell(inner: string): string {
+// Brand palette derived from Maximus logo:
+//   NAVY (buildings)   #0F2547 → deep, primary backdrop
+//   NAVY MID          #1B3966 → gradient step
+//   GOLD (arrow)      #D4A24A → sharp accent
+//   GOLD LIGHT        #F0C866 → highlight
+//   CHAMPAGNE (text)  #EFE5CC → warm off-white
+//   PAPER (card)      #FDFBF6 → warm paper for body
+
+function shell(inner: string, opts: { preheader?: string } = {}): string {
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
 </head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
-    <div style="border-radius:24px;overflow:hidden;background:#ffffff;box-shadow:0 20px 60px rgba(249,115,22,0.15);">
-      <div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);padding:40px 32px;text-align:center;">
-        <img src="${LOGO_URL}" alt="Maximus" width="72" height="72" style="border-radius:16px;display:block;margin:0 auto 16px;"/>
-        <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Maximus Solutions Group</h1>
-        <p style="margin:8px 0 0;color:rgba(255,255,255,0.9);font-size:13px;">Trusted home services, on demand.</p>
-      </div>
-      <div style="padding:40px 32px;">${inner}</div>
-      <div style="padding:20px 32px;background:#fafafa;border-top:1px solid #e5e7eb;text-align:center;">
-        <p style="margin:0;color:#9ca3af;font-size:12px;">You're receiving this because you have an active Maximus account.</p>
-      </div>
+<body style="margin:0;padding:0;background:#0A1628;font-family:'Georgia','Times New Roman',serif;">
+  ${opts.preheader ? `<span style="display:none;opacity:0;visibility:hidden;height:0;width:0;overflow:hidden;">${opts.preheader}</span>` : ""}
+  <div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+
+    <!-- Masthead: navy backdrop, gold hairline, centered wordmark -->
+    <div style="background:linear-gradient(180deg,#0F2547 0%,#1B3966 100%);padding:44px 32px 36px;text-align:center;border-radius:20px 20px 0 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+        <tr><td align="center">
+          <img src="${LOGO_URL}" alt="Maximus Solutions Group" width="130" style="display:block;margin:0 auto;"/>
+        </td></tr>
+      </table>
+      <div style="margin-top:20px;height:1px;background:linear-gradient(90deg,transparent 0%,#D4A24A 50%,transparent 100%);"></div>
+      <p style="margin:14px 0 0;color:#D4A24A;font-family:'Georgia',serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:400;">Trusted Property Services</p>
+    </div>
+
+    <!-- Body: warm paper card -->
+    <div style="background:#FDFBF6;padding:44px 36px 40px;border-radius:0 0 20px 20px;font-family:'Georgia','Times New Roman',serif;">
+      ${inner}
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:24px 20px 8px;text-align:center;">
+      <p style="margin:0;color:rgba(239,229,204,0.55);font-size:11px;font-family:'Georgia',serif;letter-spacing:0.5px;">
+        Maximus Solutions Group &middot; Trusted home services, on demand
+      </p>
+      <p style="margin:6px 0 0;color:rgba(239,229,204,0.35);font-size:10px;font-family:Arial,sans-serif;">
+        You're receiving this because you have an active Maximus account.
+      </p>
     </div>
   </div>
 </body>
@@ -59,21 +83,34 @@ function shell(inner: string): string {
 }
 
 function btn(href: string, label: string): string {
-  return `<a href="${href}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:12px;box-shadow:0 8px 24px rgba(249,115,22,0.4);">${label}</a>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;border-collapse:collapse;"><tr><td style="background:#0F2547;">
+    <a href="${href}" style="display:inline-block;padding:16px 40px;color:#F0C866;text-decoration:none;font-family:'Georgia',serif;font-size:13px;font-weight:400;letter-spacing:2.5px;text-transform:uppercase;border:1px solid #D4A24A;">${label}</a>
+  </td></tr></table>`;
 }
 
 function heading(text: string): string {
-  return `<h2 style="margin:0 0 12px;color:#111827;font-size:22px;font-weight:700;">${text}</h2>`;
+  return `<h2 style="margin:0 0 6px;color:#0F2547;font-family:'Georgia','Times New Roman',serif;font-size:28px;font-weight:400;letter-spacing:-0.5px;line-height:1.2;">${text}</h2>
+  <div style="height:1px;width:36px;background:#D4A24A;margin:14px 0 20px;"></div>`;
 }
 
 function para(text: string): string {
-  return `<p style="margin:0 0 16px;color:#4b5563;font-size:15px;line-height:1.6;">${text}</p>`;
+  return `<p style="margin:0 0 18px;color:#3D4B5C;font-family:'Georgia',serif;font-size:15px;line-height:1.75;">${text}</p>`;
 }
 
 function bigAmount(amount: string): string {
-  return `<div style="margin:16px 0 24px;padding:24px;border-radius:16px;background:linear-gradient(135deg,rgba(249,115,22,0.08),rgba(234,88,12,0.04));text-align:center;">
-    <div style="font-size:14px;color:#9ca3af;font-weight:500;margin-bottom:4px;">Quote total</div>
-    <div style="font-size:40px;font-weight:800;color:#ea580c;letter-spacing:-1px;">$${amount}</div>
+  return `<div style="margin:22px 0 28px;padding:28px 20px;border:1px solid rgba(212,162,74,0.35);background:linear-gradient(135deg,rgba(212,162,74,0.06) 0%,rgba(240,200,102,0.02) 100%);text-align:center;">
+    <div style="font-family:'Georgia',serif;font-size:10px;color:#8B7A55;font-weight:400;margin-bottom:8px;letter-spacing:2.5px;text-transform:uppercase;">Quote Total</div>
+    <div style="font-family:'Georgia',serif;font-size:44px;font-weight:400;color:#0F2547;letter-spacing:-1px;line-height:1;">$${amount}</div>
+    <div style="margin-top:10px;height:1px;width:24px;background:#D4A24A;display:inline-block;"></div>
+  </div>`;
+}
+
+function infoBlock(title: string, lines: string[]): string {
+  return `<div style="margin:32px 0 0;padding:22px 24px;background:#F5F0E4;border-left:2px solid #D4A24A;">
+    <div style="font-family:'Georgia',serif;font-weight:700;color:#0F2547;font-size:12px;margin-bottom:12px;letter-spacing:1.5px;text-transform:uppercase;">${title}</div>
+    <div style="color:#3D4B5C;font-family:'Georgia',serif;font-size:14px;line-height:2;">
+      ${lines.join("<br/>")}
+    </div>
   </div>`;
 }
 
@@ -82,20 +119,18 @@ function renderTemplate(name: Payload["template"], data: Record<string, unknown>
     case "welcome": {
       const name_ = (data.name as string) ?? "there";
       return {
-        subject: "Welcome to Maximus 🎉",
+        subject: "Welcome to Maximus",
         html: shell(
-          heading(`Hi ${name_}, welcome to Maximus`) +
-            para("Your account is ready. Maximus connects you with vetted local pros for any home service — plumbing, electrical, HVAC, painting, and more. Request a job in under 60 seconds.") +
-            `<div style="text-align:center;">${btn(APP_URL + "/client/request", "Request a service")}</div>` +
-            `<div style="margin:32px 0 0;padding:20px;border-radius:12px;background:#f9fafb;border-left:3px solid #f97316;">
-              <div style="font-weight:600;color:#111827;margin-bottom:8px;">How it works</div>
-              <div style="color:#4b5563;font-size:14px;line-height:1.7;">
-                1. Tell us what you need<br/>
-                2. We send you a quote<br/>
-                3. Accept and track your provider live<br/>
-                4. Pay securely, rate the job
-              </div>
-            </div>`,
+          heading(`Welcome, ${name_}`) +
+            para("Your Maximus account is ready. We connect discerning property owners with vetted, insured professionals across plumbing, electrical, HVAC, painting, and every home service in between. Every job is coordinated, tracked, and stood behind.") +
+            `<div style="margin:28px 0;text-align:center;">${btn(APP_URL + "/client/request", "Request a service")}</div>` +
+            infoBlock("How it works", [
+              "01 &nbsp;&nbsp; Tell us what you need",
+              "02 &nbsp;&nbsp; We prepare and send a quote",
+              "03 &nbsp;&nbsp; Accept and track your provider live",
+              "04 &nbsp;&nbsp; Pay securely and rate the job",
+            ]),
+          { preheader: `Welcome to Maximus, ${name_} — your account is ready.` },
         ),
       };
     }
