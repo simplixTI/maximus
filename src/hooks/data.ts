@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/lib/database.types";
 import { sendTransactionalEmail } from "@/lib/email";
+import { sendTransactionalSMS } from "@/lib/sms";
 
 type ServiceRequestRow = Database["public"]["Tables"]["service_requests"]["Row"];
 type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
@@ -129,16 +130,16 @@ export function useCreateQuote() {
           notes: input.notes ?? null,
           status: "pending",
         })
-        .select("id, request:service_requests(category, client:profiles(email))")
+        .select("id, request:service_requests(category, client:profiles(email, phone))")
         .single();
       if (error) throw error;
-      const req = data.request as { category?: string; client?: { email?: string } } | null;
+      const req = data.request as { category?: string; client?: { email?: string; phone?: string } } | null;
+      const tplData = { amount: input.amount.toFixed(2), category: req?.category ?? "your request" };
       if (req?.client?.email) {
-        sendTransactionalEmail({
-          to: req.client.email,
-          template: "quote_sent",
-          data: { amount: input.amount.toFixed(2), category: req.category ?? "your request" },
-        });
+        sendTransactionalEmail({ to: req.client.email, template: "quote_sent", data: tplData });
+      }
+      if (req?.client?.phone) {
+        sendTransactionalSMS({ to: req.client.phone, template: "quote_sent", data: tplData });
       }
       return data.id as string;
     },
@@ -196,6 +197,10 @@ export function useAcceptQuote() {
       await supabase.from("service_requests").update({ status: "paid" }).eq("id", quote.request_id);
       if (user.email) {
         sendTransactionalEmail({ to: user.email, template: "quote_accepted" });
+      }
+      const phone = (user.phone as string | undefined) ?? (user.user_metadata?.phone as string | undefined);
+      if (phone) {
+        sendTransactionalSMS({ to: phone, template: "quote_accepted" });
       }
       return booking.id as string;
     },

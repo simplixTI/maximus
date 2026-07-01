@@ -69,8 +69,10 @@ supabase functions deploy send-email --no-verify-jwt
 
 ### 2. Set secrets
 
+Copy the API key from your `.env.local` (gitignored) — never commit it:
+
 ```bash
-supabase secrets set RESEND_API_KEY=re_UzasgooB_5Go73PYrS498kvEEp1CMZxVg
+supabase secrets set RESEND_API_KEY=re_…                 # from Resend dashboard
 supabase secrets set EMAIL_FROM="Maximus <onboarding@resend.dev>"
 ```
 
@@ -86,7 +88,7 @@ address (e.g. `Maximus <no-reply@maximus.com>`).
 | Host     | `smtp.resend.com`                               |
 | Port     | `465`                                           |
 | Username | `resend`                                        |
-| Password | `re_UzasgooB_5Go73PYrS498kvEEp1CMZxVg`          |
+| Password | *(your Resend API key)*                         |
 | Sender email | `onboarding@resend.dev` (or your verified domain) |
 | Sender name  | `Maximus`                                   |
 
@@ -100,5 +102,63 @@ supabase functions invoke send-email --body '{
   "to": "you@example.com",
   "template": "quote_sent",
   "data": { "amount": "250.00", "category": "plumbing" }
+}'
+```
+
+## SMS via Twilio
+
+Transactional SMS (quote sent, quote accepted, provider en route) goes through
+the `send-sms` Edge Function → Twilio Messages API. Phone-based Auth OTP
+(sign-in-with-phone) uses Supabase's built-in Twilio provider — configure in
+**Dashboard → Auth → Providers → Phone**.
+
+### 1. Buy or claim a Twilio number
+
+In Twilio Console → **Phone Numbers → Buy a number** → pick a US number with
+SMS capability. Copy the E.164 number, e.g. `+15551234567`.
+
+Alternatively (recommended for scale) create a **Messaging Service** and copy
+its SID (`MGxxxx…`).
+
+### 2. Deploy the Edge Function
+
+```bash
+supabase functions deploy send-sms --no-verify-jwt
+```
+
+### 3. Set secrets
+
+Copy the actual values from your `.env.local` (they are gitignored — never
+commit them):
+
+```bash
+supabase secrets set TWILIO_ACCOUNT_SID=AC…             # from Twilio Console
+supabase secrets set TWILIO_AUTH_TOKEN=…                # from Twilio Console
+supabase secrets set TWILIO_FROM=+15551234567           # your number or MGxxxx service SID
+```
+
+(The Twilio "Secret Key" is only for API-Key auth. This function uses classic
+Auth Token auth, which is simpler. Keep the Secret Key stored securely — you
+can switch to it later without changing app code.)
+
+### 4. Enable phone auth in Supabase (for OTP sign-in)
+
+**Dashboard → Auth → Providers → Phone** → toggle on.
+
+| Field                                   | Value                             |
+| --------------------------------------- | --------------------------------- |
+| SMS Provider                            | Twilio                            |
+| Account SID                             | *(from Twilio Console)*           |
+| Auth Token                              | *(from Twilio Console)*           |
+| Message Service SID *(or)* Phone Number | your number / MGxxxx SID          |
+
+Save. Now `signInWithOtp({ phone: "+15551234567" })` sends a real SMS OTP.
+
+### 5. Verify
+
+```bash
+supabase functions invoke send-sms --body '{
+  "to": "+15551234567",
+  "template": "quote_accepted"
 }'
 ```
