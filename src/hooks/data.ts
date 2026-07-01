@@ -425,6 +425,75 @@ export function useAcceptQuote() {
   });
 }
 
+export function usePendingProviders() {
+  return useQuery({
+    queryKey: ["provider", "pending"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("provider_profiles")
+        .select(
+          "user_id, business_name, ein, city, state, bio, created_at, profile:profiles(full_name, email, phone), documents:provider_documents(id, type, file_url, status, created_at), skills:provider_skills(id, skill, license_status)"
+        )
+        .eq("verified", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useApproveProvider() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (provider_id: string) => {
+      const { error: pErr } = await supabase
+        .from("provider_profiles")
+        .update({ verified: true })
+        .eq("user_id", provider_id);
+      if (pErr) throw pErr;
+      await supabase
+        .from("provider_documents")
+        .update({ status: "verified" })
+        .eq("provider_id", provider_id)
+        .eq("status", "pending");
+      insertNotification({
+        user_id: provider_id,
+        type: "generic",
+        title: "You're approved!",
+        body: "Your Maximus provider account is verified. Toggle Online to start receiving jobs.",
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["provider", "pending"] });
+    },
+  });
+}
+
+export function useRejectProvider() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { provider_id: string; reason?: string }) => {
+      const { error } = await supabase
+        .from("provider_documents")
+        .update({ status: "rejected" })
+        .eq("provider_id", input.provider_id)
+        .eq("status", "pending");
+      if (error) throw error;
+      insertNotification({
+        user_id: input.provider_id,
+        type: "generic",
+        title: "Application needs updates",
+        body:
+          input.reason ??
+          "We couldn't verify your documents. Please review and re-upload from your provider profile.",
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["provider", "pending"] });
+    },
+  });
+}
+
 export function useCreateReview() {
   const { user } = useAuth();
   const qc = useQueryClient();

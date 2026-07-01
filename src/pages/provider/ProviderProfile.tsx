@@ -4,9 +4,22 @@ import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/layout/BottomNav";
 import PageTransition from "@/components/shared/PageTransition";
 import AnimatedList from "@/components/shared/AnimatedList";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const ProviderProfile = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out");
+      navigate("/login", { replace: true });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Sign out failed");
+    }
+  };
 
   return (
     <PageTransition className="flex min-h-screen flex-col bg-background pb-20">
@@ -63,7 +76,7 @@ const ProviderProfile = () => {
           ))}
         </AnimatedList>
 
-        <Button variant="outline" onClick={() => navigate("/login")} className="h-12 w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10">
+        <Button variant="outline" onClick={handleSignOut} className="h-12 w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10">
           <LogOut className="h-4 w-4" />
           Sign Out
         </Button>
