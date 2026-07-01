@@ -29,6 +29,54 @@ export function useMyBookings() {
   });
 }
 
+export function useProviderJobs() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["bookings", "provider", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          "id, status, created_at, started_at, completed_at, request:service_requests(id, category, description, address, scheduled_at), quote:quotes(amount), client:profiles(full_name, phone)"
+        )
+        .eq("provider_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useProviderEarnings() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["earnings", "provider", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("id, status, quote:quotes(amount)")
+        .eq("provider_id", user!.id);
+      if (error) throw error;
+      const rows = data ?? [];
+      let total = 0;
+      let completed = 0;
+      let active = 0;
+      for (const b of rows) {
+        const amount = Number((b.quote as { amount?: number } | null)?.amount ?? 0);
+        if (b.status === "completed") {
+          completed += 1;
+          total += amount;
+        } else if (b.status !== "cancelled") {
+          active += 1;
+        }
+      }
+      return { total, completed, active };
+    },
+  });
+}
+
 export function useMyServiceRequests() {
   const { user } = useAuth();
   return useQuery({
@@ -191,6 +239,35 @@ export function useMyPendingQuotes() {
   });
 }
 
+async function findNearestProvider(request_id: string): Promise<string | null> {
+  const { data: req } = await supabase
+    .from("service_requests")
+    .select("location")
+    .eq("id", request_id)
+    .maybeSingle();
+
+  const loc = (req as { location?: { coordinates?: [number, number] } } | null)?.location;
+  if (loc?.coordinates && loc.coordinates.length === 2) {
+    const [lng, lat] = loc.coordinates;
+    const { data: matches } = await supabase.rpc("providers_within_radius", {
+      lat,
+      lng,
+      radius_m: 50000,
+    });
+    if (matches && matches.length > 0) return matches[0].provider_id;
+  }
+
+  const { data: fallback } = await supabase
+    .from("provider_profiles")
+    .select("user_id")
+    .eq("verified", true)
+    .eq("online", true)
+    .order("rating_avg", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return fallback?.user_id ?? null;
+}
+
 export function useAcceptQuote() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -203,19 +280,36 @@ export function useAcceptQuote() {
         .eq("id", quote.id);
       if (qErr) throw qErr;
 
+      const providerId = await findNearestProvider(quote.request_id);
+
       const { data: booking, error: bErr } = await supabase
         .from("bookings")
         .insert({
           request_id: quote.request_id,
           quote_id: quote.id,
           client_id: user.id,
-          status: "confirmed",
+          provider_id: providerId,
+          status: providerId ? "confirmed" : "confirmed",
         })
         .select("id")
         .single();
       if (bErr) throw bErr;
 
-      await supabase.from("service_requests").update({ status: "paid" }).eq("id", quote.request_id);
+      await supabase.from("service_requests").update({ status: providerId ? "matched" : "paid" }).eq("id", quote.request_id);
+
+      if (providerId) {
+        insertNotification({
+          user_id: providerId,
+          type: "provider_assigned",
+          title: "New job assigned",
+          body: "A client has booked you. Open the app to review details.",
+        });
+        supabase.from("profiles").select("email, phone").eq("id", providerId).maybeSingle().then(({ data: prov }) => {
+          const p = prov as { email?: string; phone?: string } | null;
+          if (p?.email) sendTransactionalEmail({ to: p.email, template: "generic", subject: "New job assigned", data: { body: "You have a new Maximus job. Open the app to review." } });
+          if (p?.phone) sendTransactionalSMS({ to: p.phone, template: "provider_assigned" });
+        });
+      }
       if (user.email) {
         sendTransactionalEmail({ to: user.email, template: "quote_accepted" });
       }

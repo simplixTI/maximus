@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Map, Briefcase, DollarSign, User, TrendingUp, Clock, Star, ChevronRight } from "lucide-react";
@@ -7,22 +7,48 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ListSkeleton from "@/components/shared/ListSkeleton";
 import PageTransition from "@/components/shared/PageTransition";
 import AnimatedList from "@/components/shared/AnimatedList";
-
-const upcomingJobs = [
-  { id: "1", service: "Electrical Repair", client: "Sarah M.", address: "456 Oak Ave", time: "Today, 2:00 PM", pay: "$120" },
-  { id: "2", service: "Plumbing Fix", client: "Mike R.", address: "789 Pine St", time: "Today, 4:30 PM", pay: "$95" },
-  { id: "3", service: "HVAC Maintenance", client: "Lisa T.", address: "321 Elm Dr", time: "Tomorrow, 9:00 AM", pay: "$180" },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { useProviderJobs, useProviderEarnings } from "@/hooks/data";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 const ProviderDashboard = () => {
   const navigate = useNavigate();
-  const [online, setOnline] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const jobsQ = useProviderJobs();
+  const earningsQ = useProviderEarnings();
+  const [online, setOnline] = useState(false);
+  const [togglingOnline, setTogglingOnline] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!user) return;
+    supabase
+      .from("provider_profiles")
+      .select("online")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setOnline(!!(data as { online?: boolean } | null)?.online));
+  }, [user]);
+
+  const toggleOnline = async () => {
+    if (!user) return;
+    setTogglingOnline(true);
+    const next = !online;
+    const { error } = await supabase.from("provider_profiles").update({ online: next }).eq("user_id", user.id);
+    setTogglingOnline(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setOnline(next);
+      toast.success(next ? "You're online — accepting jobs" : "You're offline");
+    }
+  };
+
+  const jobs = jobsQ.data ?? [];
+  const active = jobs.filter((j) => j.status !== "completed" && j.status !== "cancelled");
+  const earnings = earningsQ.data ?? { total: 0, completed: 0, active: 0 };
+  const loading = jobsQ.isLoading || earningsQ.isLoading;
 
   return (
     <PageTransition className="flex min-h-screen flex-col bg-background pb-20">
@@ -34,7 +60,8 @@ const ProviderDashboard = () => {
           </div>
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => setOnline(!online)}
+            onClick={toggleOnline}
+            disabled={togglingOnline}
             className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${online ? "bg-green-500/15 text-green-500" : "bg-secondary text-muted-foreground"}`}
           >
             <span className={`h-2 w-2 rounded-full ${online ? "bg-green-500 animate-pulse" : "bg-muted-foreground"}`} />
@@ -57,9 +84,9 @@ const ProviderDashboard = () => {
         ) : (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="grid grid-cols-3 gap-3">
             {[
-              { icon: Briefcase, label: "Jobs Today", value: "3", color: "text-accent" },
-              { icon: DollarSign, label: "Earned", value: "$395", color: "text-green-500" },
-              { icon: Star, label: "Rating", value: "4.9", color: "text-accent" },
+              { icon: Briefcase, label: "Active", value: String(earnings.active), color: "text-accent" },
+              { icon: DollarSign, label: "Earned", value: `$${earnings.total.toFixed(0)}`, color: "text-green-500" },
+              { icon: Star, label: "Completed", value: String(earnings.completed), color: "text-accent" },
             ].map((stat, i) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.3 }} className="rounded-2xl border border-border bg-card p-4 text-center">
                 <stat.icon className={`mx-auto h-5 w-5 ${stat.color}`} />
@@ -80,10 +107,10 @@ const ProviderDashboard = () => {
           <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.35 }} className="rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 p-5">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-accent" />
-              <span className="text-sm font-semibold text-foreground">This Week</span>
+              <span className="text-sm font-semibold text-foreground">Lifetime earnings</span>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">$1,245.00</p>
-            <p className="text-xs text-muted-foreground">12 jobs completed • +18% vs last week</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">${earnings.total.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">{earnings.completed} jobs completed</p>
           </motion.div>
         )}
 
@@ -91,23 +118,39 @@ const ProviderDashboard = () => {
           <h2 className="mb-3 font-display text-lg font-semibold text-foreground">Upcoming Jobs</h2>
           {loading ? (
             <ListSkeleton count={3} variant="job" />
+          ) : active.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card/40 p-6 text-center">
+              <p className="text-sm text-muted-foreground">No jobs yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">Stay online to get matched with new bookings</p>
+            </div>
           ) : (
             <AnimatedList className="space-y-2">
-              {upcomingJobs.map((job) => (
-                <button key={job.id} onClick={() => navigate(`/provider/jobs/${job.id}`)} className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-all hover:border-accent/30 hover:scale-[1.01] active:scale-[0.99]">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                    <Clock className="h-5 w-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{job.service}</p>
-                    <p className="text-xs text-muted-foreground">{job.client} • {job.time}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-accent">{job.pay}</p>
-                    <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" />
-                  </div>
-                </button>
-              ))}
+              {active.map((job) => {
+                const req = (job as { request?: { category?: string } }).request;
+                const client = (job as { client?: { full_name?: string } }).client;
+                const amount = ((job as { quote?: { amount?: number } }).quote?.amount) ?? 0;
+                return (
+                  <button
+                    key={job.id}
+                    onClick={() => navigate(`/provider/jobs/${job.id}`)}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-all hover:border-accent/30 hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                      <Clock className="h-5 w-5 text-accent" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground capitalize">{req?.category ?? "Service"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {client?.full_name ?? "Client"} • {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-accent">${Number(amount).toFixed(0)}</p>
+                      <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </button>
+                );
+              })}
             </AnimatedList>
           )}
         </div>
