@@ -425,4 +425,55 @@ export function useAcceptQuote() {
   });
 }
 
+export function useCreateReview() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      booking_id: string;
+      reviewee_id: string;
+      rating: number;
+      comment?: string;
+    }) => {
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await supabase.from("reviews").insert({
+        booking_id: input.booking_id,
+        reviewer_id: user.id,
+        reviewee_id: input.reviewee_id,
+        rating: input.rating,
+        comment: input.comment ?? null,
+      });
+      if (error) throw error;
+      insertNotification({
+        user_id: input.reviewee_id,
+        type: "generic",
+        title: "You got a new review",
+        body: `${input.rating}★${input.comment ? ` — "${input.comment.slice(0, 60)}"` : ""}`,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["reviews"] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+    },
+  });
+}
+
+export function useReviewForBooking(booking_id: string | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["reviews", "booking", booking_id, user?.id],
+    enabled: !!booking_id && !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("id, rating, comment")
+        .eq("booking_id", booking_id!)
+        .eq("reviewer_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export type { ServiceRequestRow, BookingRow, QuoteRow };
