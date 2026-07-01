@@ -442,6 +442,48 @@ const AdminDashboard = () => {
           </button>
         </div>
 
+        {/* Nav Grid — placed near top for 1-tap access to management pages */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-6 grid grid-cols-2 gap-3"
+        >
+          {navGrid.map((n) => (
+            <button
+              key={n.path}
+              onClick={() => navigate(n.path)}
+              className="group relative flex flex-col items-start gap-3 overflow-hidden rounded-2xl border border-border bg-card/60 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_10px_30px_-15px_hsl(var(--orange-glow)/0.5)]"
+            >
+              <div
+                className="pointer-events-none absolute -bottom-6 -right-6 h-24 w-24 rounded-full opacity-20 blur-2xl transition-opacity group-hover:opacity-40"
+                style={{ background: n.tint }}
+              />
+              <div className="flex w-full items-start justify-between">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ background: `${n.tint}20` }}
+                >
+                  <n.icon className="h-5 w-5" style={{ color: n.tint }} />
+                </div>
+                {typeof n.badge === "number" && n.badge > 0 ? (
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums"
+                    style={{ background: `${n.tint}18`, color: n.tint }}
+                  >
+                    {fmtInt.format(n.badge)}
+                  </span>
+                ) : null}
+              </div>
+              <div>
+                <p className="font-display text-sm font-semibold text-foreground">{n.label}</p>
+                <p className="text-[11px] text-muted-foreground">{n.desc}</p>
+              </div>
+              <ChevronRight className="absolute bottom-3 right-3 h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+            </button>
+          ))}
+        </motion.div>
+
         {/* KPI Grid */}
         <motion.div
           initial="hidden"
@@ -450,7 +492,7 @@ const AdminDashboard = () => {
             hidden: {},
             visible: { transition: { staggerChildren: 0.06 } },
           }}
-          className="grid grid-cols-2 gap-3 px-6"
+          className="mt-4 grid grid-cols-2 gap-3 px-6"
         >
           {[
             {
@@ -611,47 +653,6 @@ const AdminDashboard = () => {
           )}
         </motion.div>
 
-        {/* Nav Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-6 mt-5 grid grid-cols-2 gap-3"
-        >
-          {navGrid.map((n) => (
-            <button
-              key={n.path}
-              onClick={() => navigate(n.path)}
-              className="group relative flex flex-col items-start gap-3 overflow-hidden rounded-2xl border border-border bg-card/60 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_10px_30px_-15px_hsl(var(--orange-glow)/0.5)]"
-            >
-              <div
-                className="pointer-events-none absolute -bottom-6 -right-6 h-24 w-24 rounded-full opacity-20 blur-2xl transition-opacity group-hover:opacity-40"
-                style={{ background: n.tint }}
-              />
-              <div className="flex w-full items-start justify-between">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ background: `${n.tint}20` }}
-                >
-                  <n.icon className="h-5 w-5" style={{ color: n.tint }} />
-                </div>
-                {typeof n.badge === "number" && n.badge > 0 ? (
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums"
-                    style={{ background: `${n.tint}18`, color: n.tint }}
-                  >
-                    {fmtInt.format(n.badge)}
-                  </span>
-                ) : null}
-              </div>
-              <div>
-                <p className="font-display text-sm font-semibold text-foreground">{n.label}</p>
-                <p className="text-[11px] text-muted-foreground">{n.desc}</p>
-              </div>
-              <ChevronRight className="absolute bottom-3 right-3 h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
-            </button>
-          ))}
-        </motion.div>
       </div>
     </div>
   );
