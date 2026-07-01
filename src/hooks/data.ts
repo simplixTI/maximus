@@ -242,7 +242,7 @@ export function usePendingRequests() {
       const { data, error } = await supabase
         .from("service_requests")
         .select("id, category, description, address, created_at, client:profiles(full_name, email)")
-        .in("status", ["draft", "quoted"])
+        .eq("status", "draft")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -284,6 +284,11 @@ export function useCreateQuote() {
         .select("id, request:service_requests(client_id, category, client:profiles(email, phone))")
         .single();
       if (error) throw error;
+      await supabase
+        .from("service_requests")
+        .update({ status: "quoted" })
+        .eq("id", input.request_id)
+        .eq("status", "draft");
       const req = data.request as
         | { client_id?: string; category?: string; client?: { email?: string; phone?: string } }
         | null;

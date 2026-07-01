@@ -20,6 +20,8 @@ interface AuthState {
     role?: UserRole;
   }) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -109,9 +111,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const resetPassword: AuthState["resetPassword"] = async (email) => {
+    const redirectTo = `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), {
+      redirectTo,
+    });
+    return { error: error?.message ?? null };
+  };
+
+  const updatePassword: AuthState["updatePassword"] = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error: error?.message ?? null };
+  };
+
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, role, loading, signIn, signUp, signOut }}
+      value={{
+        session,
+        user: session?.user ?? null,
+        role,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        resetPassword,
+        updatePassword,
+      }}
     >
       {children}
     </AuthContext.Provider>

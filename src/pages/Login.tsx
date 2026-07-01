@@ -107,10 +107,19 @@ const Login = () => {
           </div>
         </div>
 
+        <div className="mt-3 text-right">
+          <button
+            onClick={() => navigate("/forgot-password")}
+            className="text-sm text-accent hover:underline"
+          >
+            Forgot password?
+          </button>
+        </div>
+
         <Button
           onClick={handleLogin}
           disabled={loading || !email || !password}
-          className="mt-8 h-14 w-full rounded-xl bg-gradient-orange font-display text-lg font-semibold text-accent-foreground shadow-orange transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+          className="mt-6 h-14 w-full rounded-xl bg-gradient-orange font-display text-lg font-semibold text-accent-foreground shadow-orange transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Sign In"}
         </Button>

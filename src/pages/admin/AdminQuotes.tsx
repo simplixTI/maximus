@@ -143,7 +143,7 @@ const AdminQuotes = () => {
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[q.status] ?? "bg-secondary text-foreground"}`}
                     >
-                      {q.status.replace("_", " ")}
+                      {q.status === "pending" ? "Awaiting client" : q.status.replace("_", " ")}
                     </span>
                   </div>
                 );

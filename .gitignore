@@ -22,6 +22,10 @@ dist-ssr
 supabase/.branches
 supabase/.temp
 
+# E2E outputs
+e2e/screenshots/
+e2e/screenshots-validation/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
