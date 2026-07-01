@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import StepBusiness from "@/components/provider/StepBusiness";
 import StepPersonal from "@/components/provider/StepPersonal";
@@ -9,6 +9,8 @@ import StepVehicle from "@/components/provider/StepVehicle";
 import StepDocuments from "@/components/provider/StepDocuments";
 import StepBackground from "@/components/provider/StepBackground";
 import StepSkills from "@/components/provider/StepSkills";
+import { useUpsertProviderProfile, useSubmitProviderApplication } from "@/hooks/upload";
+import { toast } from "sonner";
 
 const STEP_LABELS = ["Business", "Personal", "Vehicle", "Documents", "Background", "Skills"];
 
@@ -16,14 +18,26 @@ const ProviderOnboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [complete, setComplete] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const upsertProfile = useUpsertProviderProfile();
+  const submitApp = useSubmitProviderApplication();
 
   const progress = ((currentStep + 1) / STEP_LABELS.length) * 100;
 
-  const next = () => {
+  const next = async () => {
     if (currentStep < STEP_LABELS.length - 1) {
       setCurrentStep((s) => s + 1);
-    } else {
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await upsertProfile.mutateAsync({});
+      await submitApp.mutateAsync();
       setComplete(true);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to submit application");
+    } finally {
+      setSubmitting(false);
     }
   };
 
