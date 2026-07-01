@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import StepProperty from "@/components/request/StepProperty";
 import StepIntent from "@/components/request/StepIntent";
@@ -21,15 +21,30 @@ export interface ServiceRequestData {
 
 const STEPS = ["Property", "Intent", "Details", "Schedule"];
 
+type RebookState = {
+  rebookFrom?: {
+    category?: string;
+    description?: string;
+    address?: string;
+  };
+};
+
+const capitalize = (s: string): string =>
+  s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+
 const ServiceRequest = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
+  const location = useLocation();
+  const rebook = (location.state as RebookState | null)?.rebookFrom;
+  const isRebook = !!rebook?.category;
+
+  const [step, setStep] = useState(isRebook ? 2 : 0);
   const [data, setData] = useState<ServiceRequestData>({
-    propertyType: "",
-    intentType: "",
-    categories: [],
-    description: "",
-    urgency: "",
+    propertyType: isRebook ? "home" : "",
+    intentType: isRebook ? "repair" : "",
+    categories: rebook?.category ? [capitalize(rebook.category)] : [],
+    description: rebook?.description ?? "",
+    urgency: isRebook ? "standard" : "",
     photos: [],
     scheduledDate: undefined,
     scheduledTime: "",
@@ -61,6 +76,33 @@ const ServiceRequest = () => {
             {step + 1}/{STEPS.length}
           </span>
         </div>
+        {isRebook && (
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-lg bg-accent/10 px-3 py-2 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-accent">
+              <RotateCcw className="h-3 w-3" />
+              Re-booking your previous service
+            </span>
+            <button
+              onClick={() => {
+                setStep(0);
+                setData({
+                  propertyType: "",
+                  intentType: "",
+                  categories: [],
+                  description: "",
+                  urgency: "",
+                  photos: [],
+                  scheduledDate: undefined,
+                  scheduledTime: "",
+                });
+                navigate("/client/request", { replace: true, state: null });
+              }}
+              className="whitespace-nowrap text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              Start fresh →
+            </button>
+          </div>
+        )}
         <Progress value={progress} className="mt-3 h-1.5" />
       </div>
 

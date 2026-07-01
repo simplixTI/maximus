@@ -144,7 +144,20 @@ const BookingDetail = () => {
               <Star className="h-4 w-4" />
               {alreadyReviewed ? "Reviewed" : "Rate & Review"}
             </Button>
-            <Button onClick={() => navigate("/client/request")} className="h-12 flex-1 gap-2 rounded-xl bg-accent text-accent-foreground">
+            <Button
+              onClick={() =>
+                navigate("/client/request", {
+                  state: {
+                    rebookFrom: {
+                      category: b.request?.category,
+                      description: b.request?.description,
+                      address: b.request?.address,
+                    },
+                  },
+                })
+              }
+              className="h-12 flex-1 gap-2 rounded-xl bg-accent text-accent-foreground"
+            >
               <RotateCcw className="h-4 w-4" /> Re-book
             </Button>
           </div>
