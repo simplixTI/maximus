@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Home, Calendar, Map, User, MapPin, ChevronRight, Clock, FileText, Check, X } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
 import ListSkeleton from "@/components/shared/ListSkeleton";
@@ -7,7 +8,12 @@ import PageTransition from "@/components/shared/PageTransition";
 import AnimatedList from "@/components/shared/AnimatedList";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useMyBookings, useMyPendingQuotes, useAcceptQuote } from "@/hooks/data";
+import {
+  useMyBookings,
+  useMyPendingQuotes,
+  useAcceptQuote,
+  useCreateStripeCheckout,
+} from "@/hooks/data";
 import { formatDistanceToNow } from "date-fns";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -21,20 +27,53 @@ const STATUS_STYLES: Record<string, string> = {
 
 const ClientBookings = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const bookingsQ = useMyBookings();
   const quotesQ = useMyPendingQuotes();
   const acceptMutation = useAcceptQuote();
+  const stripeCheckout = useCreateStripeCheckout();
 
   const bookings = bookingsQ.data ?? [];
   const quotes = quotesQ.data ?? [];
   const loading = bookingsQ.isLoading || quotesQ.isLoading;
 
+  // On Stripe success return: finalize booking then clean the URL
+  useEffect(() => {
+    if (searchParams.get("paid") !== "1") return;
+    const qid = searchParams.get("quote_id");
+    const rid = searchParams.get("request_id");
+    if (!qid || !rid) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await acceptMutation.mutateAsync({ id: qid, request_id: rid });
+        if (!cancelled) toast.success("Payment authorized — booking confirmed");
+      } catch (e) {
+        if (!cancelled) toast.error(e instanceof Error ? e.message : "Failed to finalize booking");
+      } finally {
+        setSearchParams({}, { replace: true });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const handleAccept = async (q: { id: string; request_id: string }) => {
     try {
-      await acceptMutation.mutateAsync({ id: q.id, request_id: q.request_id });
-      toast.success("Quote accepted — booking confirmed");
+      const origin = window.location.origin;
+      const successUrl = `${origin}/client/bookings?paid=1&quote_id=${q.id}&request_id=${q.request_id}`;
+      const cancelUrl = `${origin}/client/bookings`;
+      const { url } = await stripeCheckout.mutateAsync({
+        quote_id: q.id,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+      });
+      if (!url) throw new Error("No checkout URL");
+      window.location.assign(url);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to accept quote");
+      toast.error(e instanceof Error ? e.message : "Failed to start payment");
     }
   };
 
@@ -67,10 +106,15 @@ const ClientBookings = () => {
                   <div className="mt-4 flex items-center gap-2">
                     <Button
                       onClick={() => handleAccept({ id: q.id, request_id: req.id })}
-                      disabled={acceptMutation.isPending}
+                      disabled={acceptMutation.isPending || stripeCheckout.isPending}
                       className="h-10 flex-1 gap-1.5 rounded-xl bg-gradient-orange font-semibold text-accent-foreground shadow-orange"
                     >
-                      <Check className="h-4 w-4" /> Accept & Book
+                      <Check className="h-4 w-4" />
+                      {stripeCheckout.isPending
+                        ? "Opening secure checkout…"
+                        : acceptMutation.isPending
+                        ? "Confirming booking…"
+                        : "Pay & Book"}
                     </Button>
                     <Button variant="outline" className="h-10 rounded-xl border-border">
                       <X className="h-4 w-4" />
