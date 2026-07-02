@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Map, Briefcase, DollarSign, User, Clock, MapPin } from "lucide-react";
+import { Home, Map, Briefcase, DollarSign, User, Clock, MapPin } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
 import ListSkeleton from "@/components/shared/ListSkeleton";
 import EmptyState from "@/components/shared/EmptyState";
@@ -79,6 +79,7 @@ const ProviderJobs = () => {
       </div>
 
       <BottomNav variant="provider" items={[
+        { icon: Home, label: "Home", path: "/provider/dashboard" },
         { icon: Map, label: "Map", path: "/provider/map" },
         { icon: Briefcase, label: "Jobs", path: "/provider/jobs", active: true },
         { icon: DollarSign, label: "Earnings", path: "/provider/earnings" },

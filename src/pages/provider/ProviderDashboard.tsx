@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Map, Briefcase, DollarSign, User, TrendingUp, Clock, Star, ChevronRight } from "lucide-react";
+import { Home, Map, Briefcase, DollarSign, User, TrendingUp, Clock, Star, ChevronRight } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import ListSkeleton from "@/components/shared/ListSkeleton";
@@ -160,6 +160,7 @@ const ProviderDashboard = () => {
       </div>
 
       <BottomNav variant="provider" items={[
+        { icon: Home, label: "Home", path: "/provider/dashboard", active: true },
         { icon: Map, label: "Map", path: "/provider/map" },
         { icon: Briefcase, label: "Jobs", path: "/provider/jobs" },
         { icon: DollarSign, label: "Earnings", path: "/provider/earnings" },
