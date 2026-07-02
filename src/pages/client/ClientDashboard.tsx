@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Home, Calendar, Map, User, Plus, Clock, ChevronRight, Bell, FileText } from "lucide-react";
+import { Home, Calendar, Map, User, Plus, Clock, ChevronRight, Bell, FileText, Hourglass, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/layout/BottomNav";
@@ -7,9 +7,65 @@ import ListSkeleton from "@/components/shared/ListSkeleton";
 import PageTransition from "@/components/shared/PageTransition";
 import AnimatedList from "@/components/shared/AnimatedList";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyBookings, useMyPendingQuotes } from "@/hooks/data";
+import { useMyBookings, useMyPendingQuotes, useMyServiceRequests } from "@/hooks/data";
 import { useUnreadCount } from "@/hooks/notifications";
 import { formatDistanceToNow } from "date-fns";
+
+const REQUEST_STATUS_META: Record<
+  string,
+  { label: string; dot: string; text: string; bg: string; icon: typeof Hourglass; pulse?: boolean }
+> = {
+  draft: {
+    label: "Awaiting quote",
+    dot: "hsl(42, 95%, 62%)",
+    text: "text-accent",
+    bg: "bg-accent/10 border-accent/25",
+    icon: Hourglass,
+    pulse: true,
+  },
+  quoted: {
+    label: "Quote ready",
+    dot: "hsl(42, 95%, 62%)",
+    text: "text-accent",
+    bg: "bg-accent/12 border-accent/40",
+    icon: Sparkles,
+  },
+  paid: {
+    label: "Booked",
+    dot: "hsl(200, 80%, 60%)",
+    text: "text-primary",
+    bg: "bg-primary/10 border-primary/25",
+    icon: FileText,
+  },
+  matched: {
+    label: "Provider matched",
+    dot: "hsl(200, 80%, 60%)",
+    text: "text-primary",
+    bg: "bg-primary/10 border-primary/25",
+    icon: FileText,
+  },
+  in_progress: {
+    label: "In progress",
+    dot: "hsl(200, 80%, 60%)",
+    text: "text-primary",
+    bg: "bg-primary/10 border-primary/25",
+    icon: FileText,
+  },
+  completed: {
+    label: "Completed",
+    dot: "hsl(150, 65%, 55%)",
+    text: "text-green-500",
+    bg: "bg-green-500/8 border-green-500/25",
+    icon: FileText,
+  },
+  cancelled: {
+    label: "Cancelled",
+    dot: "hsl(220, 10%, 50%)",
+    text: "text-muted-foreground",
+    bg: "bg-muted/30 border-border",
+    icon: FileText,
+  },
+};
 
 const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-primary/15 text-primary",
@@ -25,6 +81,7 @@ const ClientDashboard = () => {
   const { user } = useAuth();
   const bookingsQ = useMyBookings();
   const quotesQ = useMyPendingQuotes();
+  const requestsQ = useMyServiceRequests();
   const unreadQ = useUnreadCount();
   const unread = unreadQ.data ?? 0;
 
@@ -32,6 +89,12 @@ const ClientDashboard = () => {
   const active = bookings.filter((b) => b.status !== "completed" && b.status !== "cancelled");
   const recent = bookings.filter((b) => b.status === "completed").slice(0, 3);
   const pendingQuotes = quotesQ.data ?? [];
+  const allRequests = requestsQ.data ?? [];
+  // Show requests that are still in the pre-booking pipeline (draft/quoted/cancelled)
+  // — once they become paid/matched/in_progress they surface under Active Bookings.
+  const preBookingRequests = allRequests
+    .filter((r) => r.status === "draft" || r.status === "quoted" || r.status === "cancelled")
+    .slice(0, 4);
   const loading = bookingsQ.isLoading || quotesQ.isLoading;
 
   const greeting =
@@ -107,6 +170,76 @@ const ClientDashboard = () => {
           </div>
         </button>
       </div>
+
+      {/* Your Requests — pre-booking pipeline (draft/quoted/cancelled) */}
+      {preBookingRequests.length > 0 && (
+        <div className="mt-6 px-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold text-foreground">Your Requests</h2>
+            <button
+              onClick={() => navigate("/client/bookings")}
+              className="text-xs font-medium text-accent"
+            >
+              View All
+            </button>
+          </div>
+          <AnimatedList className="space-y-2.5">
+            {preBookingRequests.map((r) => {
+              const meta = REQUEST_STATUS_META[r.status] ?? REQUEST_STATUS_META.draft;
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => navigate("/client/bookings")}
+                  className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition-all hover:scale-[1.01] active:scale-[0.99] ${meta.bg}`}
+                >
+                  {/* Accent glow behind status */}
+                  <div
+                    className="pointer-events-none absolute -right-6 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full opacity-30 blur-2xl"
+                    style={{ background: meta.dot }}
+                  />
+                  <div
+                    className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                    style={{ background: `${meta.dot}18` }}
+                  >
+                    <meta.icon className={`h-4 w-4 ${meta.text}`} />
+                  </div>
+                  <div className="relative min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold capitalize text-foreground">
+                      {r.category ?? "Service"}
+                    </p>
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                      {r.description ?? r.address ?? "Details on request"}
+                    </p>
+                    <p className="mt-1 text-[10px] tabular-nums text-muted-foreground">
+                      {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                  <div className="relative flex flex-col items-end gap-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="relative inline-flex h-1.5 w-1.5">
+                        {meta.pulse && (
+                          <span
+                            className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
+                            style={{ background: meta.dot }}
+                          />
+                        )}
+                        <span
+                          className="relative inline-flex h-1.5 w-1.5 rounded-full"
+                          style={{ background: meta.dot }}
+                        />
+                      </span>
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider ${meta.text}`}>
+                        {meta.label}
+                      </span>
+                    </div>
+                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </button>
+              );
+            })}
+          </AnimatedList>
+        </div>
+      )}
 
       <div className="mt-6 px-6">
         <div className="flex items-center justify-between mb-3">
