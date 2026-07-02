@@ -94,7 +94,7 @@ const App = () => (
             <Route path="/client/request" element={client(<ServiceRequest />)} />
 
             {/* Provider */}
-            <Route path="/provider/onboarding" element={<ProviderOnboarding />} />
+            <Route path="/provider/onboarding" element={anyAuth(<ProviderOnboarding />)} />
             <Route path="/provider/dashboard" element={provider(<ProviderDashboard />)} />
             <Route path="/provider/map" element={provider(<ProviderMap />)} />
             <Route path="/provider/jobs" element={provider(<ProviderJobs />)} />
