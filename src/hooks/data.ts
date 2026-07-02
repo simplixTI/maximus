@@ -253,7 +253,7 @@ export function useCreateServiceRequest() {
           description: input.description,
           address: input.address,
           scheduled_at: input.scheduled_at ?? null,
-          status: "quoted",
+          status: "draft",
         })
         .select("id")
         .single();
@@ -284,6 +284,25 @@ export function useCreateServiceRequest() {
 }
 
 export function usePendingRequests() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("service-requests-pending")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "service_requests" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["service_requests"] });
+          qc.invalidateQueries({ queryKey: ["admin", "metrics"] });
+          qc.invalidateQueries({ queryKey: ["admin", "activity"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   return useQuery({
     queryKey: ["service_requests", "pending"],
     queryFn: async () => {
@@ -295,10 +314,25 @@ export function usePendingRequests() {
       if (error) throw error;
       return data ?? [];
     },
+    refetchInterval: 20000,
+    refetchOnWindowFocus: true,
   });
 }
 
 export function useSentQuotes() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("quotes-sent")
+      .on("postgres_changes", { event: "*", schema: "public", table: "quotes" }, () => {
+        qc.invalidateQueries({ queryKey: ["quotes"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   return useQuery({
     queryKey: ["quotes", "sent"],
     queryFn: async () => {
@@ -310,6 +344,8 @@ export function useSentQuotes() {
       if (error) throw error;
       return data ?? [];
     },
+    refetchInterval: 20000,
+    refetchOnWindowFocus: true,
   });
 }
 
