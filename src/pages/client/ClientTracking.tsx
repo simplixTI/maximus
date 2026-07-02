@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Phone, MessageCircle, Star, Loader2 } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Star, Loader2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useBooking, useUpdateBookingStatus } from "@/hooks/data";
+import { useBooking, useUpdateBookingStatus, useReviewForBooking } from "@/hooks/data";
+import ReviewModal from "@/components/shared/ReviewModal";
 import { useBookingProviderLocation } from "@/hooks/tracking";
 import { useUnreadMessageCount } from "@/hooks/chat";
 import { toast } from "sonner";
@@ -44,6 +45,8 @@ const ClientTracking = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const unreadMessages = useUnreadMessageCount(id);
+  const existingReview = useReviewForBooking(id);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const bookingQ = useBooking(id);
   const { location: providerLoc } = useBookingProviderLocation(id);
@@ -173,6 +176,42 @@ const ClientTracking = () => {
           </Button>
         </div>
 
+        {status === "completed" && (() => {
+          const providerId = (bookingQ.data as { provider_id?: string | null } | null | undefined)?.provider_id;
+          const alreadyReviewed = !!existingReview.data;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 overflow-hidden rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/10 to-accent/[0.03] p-4"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/20">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    {alreadyReviewed ? "Thanks for reviewing!" : "How was the service?"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {alreadyReviewed
+                      ? "Your feedback helps other clients pick great providers."
+                      : "Take 10 seconds to rate and share a note."}
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setReviewOpen(true)}
+                disabled={alreadyReviewed || !providerId}
+                className="mt-3 h-11 w-full gap-2 rounded-xl bg-gradient-orange font-display font-semibold text-accent-foreground shadow-orange disabled:opacity-50"
+              >
+                <Star className="h-4 w-4 fill-current" />
+                {alreadyReviewed ? "Already reviewed" : "Rate & Review"}
+              </Button>
+            </motion.div>
+          );
+        })()}
+
         {status !== "completed" && status !== "cancelled" && (
           <Button
             variant="ghost"
@@ -183,6 +222,14 @@ const ClientTracking = () => {
           </Button>
         )}
       </motion.div>
+
+      <ReviewModal
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        providerName="your provider"
+        bookingId={id}
+        revieweeId={(bookingQ.data as { provider_id?: string | null } | null | undefined)?.provider_id ?? undefined}
+      />
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent className="bg-card border-border">
