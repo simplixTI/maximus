@@ -710,6 +710,56 @@ export function useAvailableProviders() {
   });
 }
 
+export function useDeclineJob() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { booking_id: string; reason?: string }) => {
+      if (!user) throw new Error("Not authenticated");
+      const { data, error } = await supabase
+        .from("bookings")
+        .update({ provider_id: null })
+        .eq("id", input.booking_id)
+        .eq("provider_id", user.id)
+        .select("id, client_id, request:service_requests(category)")
+        .single();
+      if (error) throw error;
+
+      await supabase.from("booking_status_events").insert({
+        booking_id: input.booking_id,
+        status: "confirmed",
+        notes: `Provider declined${input.reason ? ` — ${input.reason}` : ""}`,
+      });
+
+      const req = data.request as { category?: string } | null;
+      // Notify admins
+      const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
+      for (const a of (admins ?? []) as { id: string }[]) {
+        insertNotification({
+          user_id: a.id,
+          type: "job_declined",
+          title: "Provider declined a job",
+          body: `${req?.category ?? "A job"} needs reassignment.`,
+        });
+      }
+      // Notify client too so they know there's a delay
+      if (data.client_id) {
+        insertNotification({
+          user_id: data.client_id,
+          type: "provider_search",
+          title: "Finding a new provider",
+          body: "We're matching you with another available provider.",
+        });
+      }
+      return data.id as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: ["admin", "bookings"] });
+    },
+  });
+}
+
 export function useReassignProvider() {
   const qc = useQueryClient();
   return useMutation({

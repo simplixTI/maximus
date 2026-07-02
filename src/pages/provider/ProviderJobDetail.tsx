@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, MessageCircle, CheckCircle, Navigation, Star, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, MessageCircle, CheckCircle, Navigation, Star, Loader2, XCircle, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import PageTransition from "@/components/shared/PageTransition";
-import { useBooking, useUpdateBookingStatus } from "@/hooks/data";
+import { useBooking, useUpdateBookingStatus, useDeclineJob } from "@/hooks/data";
 
 const STATUS_FLOW = ["confirmed", "en_route", "arrived", "in_progress", "completed"] as const;
 type Status = (typeof STATUS_FLOW)[number];
@@ -30,6 +31,8 @@ const ProviderJobDetail = () => {
   const { id } = useParams();
   const bookingQ = useBooking(id);
   const update = useUpdateBookingStatus();
+  const decline = useDeclineJob();
+  const [declineOpen, setDeclineOpen] = useState(false);
 
   const status = ((bookingQ.data?.status as Status | undefined) ?? "confirmed") as Status;
   const stepIndex = useMemo(() => Math.max(0, STATUS_FLOW.indexOf(status)), [status]);
@@ -144,6 +147,17 @@ const ProviderJobDetail = () => {
           <span className="text-xl font-bold text-accent">${Number(amount).toFixed(2)}</span>
         </div>
 
+        {/* Invitation banner — only until first action */}
+        {status === "confirmed" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent/[0.06] px-4 py-3">
+            <Sparkles className="h-4 w-4 shrink-0 text-accent" />
+            <p className="text-xs text-foreground">
+              <span className="font-semibold text-accent">New job invitation.</span>{" "}
+              Accept to start, or decline to release it.
+            </p>
+          </div>
+        )}
+
         <Button
           onClick={advance}
           disabled={update.isPending || status === "completed"}
@@ -155,11 +169,63 @@ const ProviderJobDetail = () => {
             </>
           ) : update.isPending ? (
             "Updating…"
+          ) : status === "confirmed" ? (
+            "Accept & Start Trip"
           ) : (
             NEXT_LABEL[status]
           )}
         </Button>
+
+        {status === "confirmed" && (
+          <Button
+            variant="outline"
+            onClick={() => setDeclineOpen(true)}
+            disabled={decline.isPending}
+            className="h-12 w-full gap-2 rounded-2xl border-destructive/30 bg-transparent text-destructive transition-all hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <XCircle className="h-4 w-4" />
+            Decline job
+          </Button>
+        )}
       </div>
+
+      <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
+        <DialogContent className="border-border bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-display">Decline this job?</DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              The job returns to the queue and admin gets notified to reassign. Client is kept in the loop.
+            </p>
+          </DialogHeader>
+          <div className="space-y-2">
+            {[
+              { key: "not_available", label: "I'm not available at that time" },
+              { key: "outside_area", label: "Outside my service area" },
+              { key: "not_my_expertise", label: "Not my expertise / not a fit" },
+              { key: "other", label: "Other reason" },
+            ].map((r) => (
+              <button
+                key={r.key}
+                onClick={async () => {
+                  if (!id) return;
+                  try {
+                    await decline.mutateAsync({ booking_id: id, reason: r.key });
+                    toast.success("Job declined — admin notified");
+                    setDeclineOpen(false);
+                    navigate("/provider/jobs", { replace: true });
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Failed to decline");
+                  }
+                }}
+                disabled={decline.isPending}
+                className="w-full rounded-xl border border-border bg-secondary/40 px-3 py-3 text-left text-sm text-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/5 disabled:opacity-40"
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </PageTransition>
   );
 };
