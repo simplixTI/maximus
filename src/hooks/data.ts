@@ -6,6 +6,7 @@ import type { Database } from "@/lib/database.types";
 import { sendTransactionalEmail } from "@/lib/email";
 import { sendTransactionalSMS } from "@/lib/sms";
 import { insertNotification } from "@/hooks/notifications";
+import { uploadFile } from "@/hooks/upload";
 
 type ServiceRequestRow = Database["public"]["Tables"]["service_requests"]["Row"];
 type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
@@ -243,8 +244,24 @@ export function useCreateServiceRequest() {
       description: string;
       address: string;
       scheduled_at?: string | null;
+      photos?: File[];
     }) => {
       if (!user) throw new Error("Not authenticated");
+
+      // Upload photos to job-photos bucket first (best-effort; on failure we
+      // still create the request so the client isn't blocked, but we log it).
+      const photoPaths: string[] = [];
+      if (input.photos && input.photos.length > 0) {
+        for (const f of input.photos) {
+          try {
+            const p = await uploadFile("job-photos", `requests/${user.id}`, f);
+            photoPaths.push(p);
+          } catch (e) {
+            console.warn("photo upload failed", e);
+          }
+        }
+      }
+
       const { data, error } = await supabase
         .from("service_requests")
         .insert({
@@ -253,6 +270,7 @@ export function useCreateServiceRequest() {
           description: input.description,
           address: input.address,
           scheduled_at: input.scheduled_at ?? null,
+          photos: photoPaths,
           status: "draft",
         })
         .select("id")
@@ -308,7 +326,7 @@ export function usePendingRequests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_requests")
-        .select("id, category, description, address, created_at, client:profiles(full_name, email)")
+        .select("id, category, description, address, photos, created_at, client:profiles(full_name, email)")
         .eq("status", "draft")
         .order("created_at", { ascending: false });
       if (error) throw error;

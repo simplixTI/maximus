@@ -66,6 +66,7 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
           `${data.propertyType} · ${data.categories.join(", ")} · urgency: ${data.urgency}`,
         address,
         scheduled_at,
+        photos: data.photos,
       });
       setSubmitted(true);
       toast.success("Request submitted — waiting for quote");

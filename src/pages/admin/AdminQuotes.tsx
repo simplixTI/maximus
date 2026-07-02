@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { usePendingRequests, useSentQuotes, useCreateQuote } from "@/hooks/data";
+import PhotoGallery from "@/components/shared/PhotoGallery";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-primary/15 text-primary",
@@ -87,6 +88,15 @@ const AdminQuotes = () => {
                     <p className="text-sm text-accent mt-0.5 capitalize">{q.category}</p>
                     <p className="text-xs text-muted-foreground mt-1">{q.description}</p>
                     {q.address && <p className="text-xs text-muted-foreground mt-1">📍 {q.address}</p>}
+                    {Array.isArray((q as { photos?: string[] }).photos) && ((q as { photos?: string[] }).photos?.length ?? 0) > 0 && (
+                      <div className="mt-3">
+                        <PhotoGallery
+                          paths={(q as { photos?: string[] }).photos ?? []}
+                          label="Client photos"
+                          compact
+                        />
+                      </div>
+                    )}
                     <div className="mt-3 space-y-2">
                       <Input
                         value={form.amount}
