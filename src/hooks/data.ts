@@ -122,19 +122,6 @@ export function useUpdateBookingStatus() {
         notes: input.notes ?? null,
       });
 
-      // On completion: capture the Stripe hold. Best-effort — failures are
-      // logged but don't roll back the status change (payments row may not
-      // exist yet if the checkout webhook hasn't fired).
-      if (input.status === "completed") {
-        try {
-          await supabase.functions.invoke("stripe-capture", {
-            body: { booking_id: input.booking_id },
-          });
-        } catch (err) {
-          console.warn("stripe-capture invocation failed", err);
-        }
-      }
-
       const client = booking.client as { email?: string; phone?: string; full_name?: string } | null;
       const req = booking.request as { category?: string } | null;
       const providerName = (user.user_metadata?.full_name as string | undefined) ?? "Your provider";
@@ -925,18 +912,6 @@ export function useCreateStripeCheckout() {
       });
       if (error) throw error;
       return data as { url: string; session_id: string };
-    },
-  });
-}
-
-export function useCapturePayment() {
-  return useMutation({
-    mutationFn: async (booking_id: string) => {
-      const { data, error } = await supabase.functions.invoke("stripe-capture", {
-        body: { booking_id },
-      });
-      if (error) throw error;
-      return data as { captured?: boolean; already?: boolean; payment_id?: string };
     },
   });
 }

@@ -68,25 +68,10 @@ serve(async (req) => {
 
     const amount = typeof quote.amount === "string" ? parseFloat(quote.amount) : quote.amount;
     const amountCents = Math.round(amount * 100);
-    const platformFeeCents = Math.round(amountCents * 0.3);
 
-    // Look up provider's Connect account if provider_id passed
-    let connectAccountId: string | null = null;
-    if (body.provider_id) {
-      const pRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/provider_profiles?user_id=eq.${body.provider_id}&select=stripe_account_id`,
-        {
-          headers: {
-            apikey: SUPABASE_SERVICE_ROLE_KEY ?? "",
-            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-        },
-      );
-      const pRows = (await pRes.json()) as Array<{ stripe_account_id: string | null }>;
-      connectAccountId = pRows?.[0]?.stripe_account_id ?? null;
-    }
-
-    // Build Stripe Checkout Session (form-urlencoded)
+    // MVP simplification: immediate capture (default), no split, no Connect.
+    // Full amount goes to platform. Split + hold + provider Connect payout
+    // to be added later.
     const params = new URLSearchParams();
     params.set("mode", "payment");
     params.set("payment_method_types[0]", "card");
@@ -98,15 +83,10 @@ serve(async (req) => {
     );
     params.set("line_items[0][price_data][product_data][description]", quote.scope.slice(0, 200));
     params.set("line_items[0][quantity]", "1");
-    params.set("payment_intent_data[capture_method]", "manual");
     params.set("payment_intent_data[metadata][quote_id]", quote.id);
     params.set("payment_intent_data[metadata][request_id]", quote.request_id);
     params.set("payment_intent_data[metadata][client_id]", quote.request?.client_id ?? "");
     if (body.provider_id) params.set("payment_intent_data[metadata][provider_id]", body.provider_id);
-    if (connectAccountId) {
-      params.set("payment_intent_data[application_fee_amount]", String(platformFeeCents));
-      params.set("payment_intent_data[transfer_data][destination]", connectAccountId);
-    }
     if (quote.request?.client?.email) params.set("customer_email", quote.request.client.email);
     params.set("success_url", body.success_url ?? "https://www.maximussolutions.app/client/bookings?paid=1");
     params.set("cancel_url", body.cancel_url ?? "https://www.maximussolutions.app/client/bookings");
