@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import PageTransition from "@/components/shared/PageTransition";
 import { useBooking, useUpdateBookingStatus, useDeclineJob } from "@/hooks/data";
+import { useUnreadMessageCount } from "@/hooks/chat";
 
 const STATUS_FLOW = ["confirmed", "en_route", "arrived", "in_progress", "completed"] as const;
 type Status = (typeof STATUS_FLOW)[number];
@@ -33,6 +34,7 @@ const ProviderJobDetail = () => {
   const update = useUpdateBookingStatus();
   const decline = useDeclineJob();
   const [declineOpen, setDeclineOpen] = useState(false);
+  const unreadMessages = useUnreadMessageCount(id);
 
   const status = ((bookingQ.data?.status as Status | undefined) ?? "confirmed") as Status;
   const stepIndex = useMemo(() => Math.max(0, STATUS_FLOW.indexOf(status)), [status]);
@@ -114,8 +116,19 @@ const ProviderJobDetail = () => {
                 <Phone className="h-4 w-4" />
               </a>
             )}
-            <button onClick={() => navigate(`/chat/${id}`)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <button
+              onClick={() => navigate(`/chat/${id}`)}
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"
+            >
               <MessageCircle className="h-4 w-4" />
+              {unreadMessages > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-destructive px-1 text-[10px] font-bold text-destructive-foreground shadow">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-60" />
+                  <span className="relative tabular-nums">
+                    {unreadMessages > 9 ? "9+" : unreadMessages}
+                  </span>
+                </span>
+              )}
             </button>
           </div>
         </motion.div>

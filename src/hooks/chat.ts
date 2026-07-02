@@ -1,9 +1,44 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/lib/database.types";
+
+const READ_EVENT = "maximus:chat-read";
+const lastReadKey = (id: string) => `chat:${id}:lastRead`;
+
+export function markChatRead(bookingId: string) {
+  try {
+    localStorage.setItem(lastReadKey(bookingId), String(Date.now()));
+    window.dispatchEvent(new CustomEvent(READ_EVENT, { detail: bookingId }));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function useUnreadMessageCount(bookingId: string | undefined): number {
+  const { user } = useAuth();
+  const messagesQ = useChatMessages(bookingId);
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const onRead = (e: Event) => {
+      const evt = e as CustomEvent<string>;
+      if (!bookingId || evt.detail === bookingId) setTick((n) => n + 1);
+    };
+    window.addEventListener(READ_EVENT, onRead);
+    return () => window.removeEventListener(READ_EVENT, onRead);
+  }, [bookingId]);
+
+  if (!bookingId || !user) return 0;
+  const messages = messagesQ.data ?? [];
+  const raw = typeof window !== "undefined" ? localStorage.getItem(lastReadKey(bookingId)) : null;
+  const lastRead = raw ? Number(raw) : 0;
+  return messages.filter(
+    (m) => m.sender_id !== user.id && new Date(m.created_at).getTime() > lastRead,
+  ).length;
+}
 
 export type ChatMessageRow = Database["public"]["Tables"]["chat_messages"]["Row"];
 

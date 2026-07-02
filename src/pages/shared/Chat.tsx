@@ -4,7 +4,7 @@ import { ArrowLeft, Send, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChatMessages, useSendMessage } from "@/hooks/chat";
+import { useChatMessages, useSendMessage, markChatRead } from "@/hooks/chat";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -19,7 +19,8 @@ const Chat = () => {
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+    if (bookingId) markChatRead(bookingId);
+  }, [messages.length, bookingId]);
 
   const send = async () => {
     if (!input.trim() || !bookingId) return;

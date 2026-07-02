@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useBooking, useUpdateBookingStatus } from "@/hooks/data";
 import { useBookingProviderLocation } from "@/hooks/tracking";
+import { useUnreadMessageCount } from "@/hooks/chat";
 import { toast } from "sonner";
 
 const providerIcon = L.divIcon({
@@ -42,6 +43,7 @@ function Recenter({ lat, lng }: { lat: number; lng: number }) {
 const ClientTracking = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const unreadMessages = useUnreadMessageCount(id);
   const [cancelOpen, setCancelOpen] = useState(false);
   const bookingQ = useBooking(id);
   const { location: providerLoc } = useBookingProviderLocation(id);
@@ -155,8 +157,19 @@ const ClientTracking = () => {
           <Button variant="outline" className="h-12 flex-1 gap-2 rounded-xl border-border text-foreground">
             <Phone className="h-4 w-4" /> Call
           </Button>
-          <Button onClick={() => navigate(`/chat/${id}`)} className="h-12 flex-1 gap-2 rounded-xl bg-accent text-accent-foreground">
+          <Button
+            onClick={() => navigate(`/chat/${id}`)}
+            className="relative h-12 flex-1 gap-2 rounded-xl bg-accent text-accent-foreground"
+          >
             <MessageCircle className="h-4 w-4" /> Message
+            {unreadMessages > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-destructive px-1 text-[10px] font-bold text-destructive-foreground shadow">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-60" />
+                <span className="relative tabular-nums">
+                  {unreadMessages > 9 ? "9+" : unreadMessages}
+                </span>
+              </span>
+            )}
           </Button>
         </div>
 
