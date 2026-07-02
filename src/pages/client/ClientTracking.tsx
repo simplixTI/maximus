@@ -119,16 +119,18 @@ const ClientTracking = () => {
         animate={{ y: 0, opacity: 1 }}
         className="flex-1 -mt-6 rounded-t-3xl border-t border-border bg-card px-6 pt-6 pb-8 z-10"
       >
-        <div className="mb-5 flex items-center gap-1">
-          {STATUS_STEPS.map((s, i) => (
-            <div key={s} className="flex-1">
-              <div className={`h-1.5 rounded-full transition-colors duration-500 ${i <= stepIndex ? "bg-accent" : "bg-border"}`} />
-              <p className={`mt-1 text-center text-[9px] font-medium transition-colors capitalize ${i <= stepIndex ? "text-accent" : "text-muted-foreground"}`}>
-                {s.replace("_", " ")}
-              </p>
-            </div>
-          ))}
-        </div>
+        {status !== "completed" && status !== "cancelled" && (
+          <div className="mb-5 flex items-center gap-1">
+            {STATUS_STEPS.map((s, i) => (
+              <div key={s} className="flex-1">
+                <div className={`h-1.5 rounded-full transition-colors duration-500 ${i <= stepIndex ? "bg-accent" : "bg-border"}`} />
+                <p className={`mt-1 text-center text-[9px] font-medium transition-colors capitalize ${i <= stepIndex ? "text-accent" : "text-muted-foreground"}`}>
+                  {s.replace("_", " ")}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center gap-3 rounded-2xl bg-secondary p-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-lg font-bold text-accent">
@@ -151,10 +153,12 @@ const ClientTracking = () => {
           </div>
         </div>
 
-        <motion.div initial={{ scale: 1.05 }} animate={{ scale: 1 }} className="mt-3 rounded-xl bg-accent/10 p-3 text-center">
-          <p className="text-xs text-muted-foreground">Current status</p>
-          <p className="text-2xl font-bold text-accent capitalize">{status.replace("_", " ")}</p>
-        </motion.div>
+        {status !== "completed" && (
+          <motion.div initial={{ scale: 1.05 }} animate={{ scale: 1 }} className="mt-3 rounded-xl bg-accent/10 p-3 text-center">
+            <p className="text-xs text-muted-foreground">Current status</p>
+            <p className="text-2xl font-bold text-accent capitalize">{status.replace("_", " ")}</p>
+          </motion.div>
+        )}
 
         <div className="mt-4 flex gap-3">
           <Button variant="outline" className="h-12 flex-1 gap-2 rounded-xl border-border text-foreground">
