@@ -12,6 +12,7 @@ interface AuthState {
   role: UserRole | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithOAuth: (provider: "google" | "apple") => Promise<{ error: string | null }>;
   signUp: (args: {
     email: string;
     password: string;
@@ -68,6 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn: AuthState["signIn"] = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error: error?.message ?? null };
+  };
+
+  const signInWithOAuth: AuthState["signInWithOAuth"] = async (provider) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/login` },
+    });
     return { error: error?.message ?? null };
   };
 
@@ -132,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role,
         loading,
         signIn,
+        signInWithOAuth,
         signUp,
         signOut,
         resetPassword,
