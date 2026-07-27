@@ -1,10 +1,20 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, Wrench } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { session, role, loading } = useAuth();
+
+  useEffect(() => {
+    if (loading || !session) return;
+    if (role === "client") navigate("/client/dashboard", { replace: true });
+    else if (role === "provider") navigate("/provider/dashboard", { replace: true });
+    else if (role === "admin") navigate("/admin", { replace: true });
+  }, [session, role, loading, navigate]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12">
