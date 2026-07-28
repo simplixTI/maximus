@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Maximus Solutions</string>
+    <string name="title_activity_main">Maximus Solutions</string>
+    <string name="package_name">com.maximussolutions.app</string>
+    <string name="custom_url_scheme">com.maximussolutions.app</string>
+</resources>
