@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Map, Briefcase, DollarSign, User, TrendingUp, Clock, Star, ChevronRight } from "lucide-react";
+import { Home, Map, Briefcase, DollarSign, User, TrendingUp, Clock, Star, ChevronRight, MapPin } from "lucide-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import ListSkeleton from "@/components/shared/ListSkeleton";
@@ -34,8 +34,14 @@ const ProviderDashboard = () => {
 
   const toggleOnline = async () => {
     if (!user) return;
-    setTogglingOnline(true);
     const next = !online;
+    if (next) {
+      toast.info(
+        "Location sharing will start so your assigned client can see you en route. It stops when you go offline or close the app.",
+        { duration: 6000 },
+      );
+    }
+    setTogglingOnline(true);
     const { error } = await supabase.from("provider_profiles").update({ online: next }).eq("user_id", user.id);
     setTogglingOnline(false);
     if (error) {
@@ -46,7 +52,20 @@ const ProviderDashboard = () => {
     }
   };
 
-  useBroadcastMyLocation(online);
+  const { status: locStatus } = useBroadcastMyLocation(online);
+
+  useEffect(() => {
+    if (locStatus === "denied") {
+      toast.error(
+        "Location permission denied. Enable it in your device settings to share your location with clients.",
+      );
+      setOnline(false);
+    } else if (locStatus === "unavailable") {
+      toast.error("Location is not available on this device.");
+    } else if (locStatus === "error") {
+      toast.error("Couldn't start location sharing. Please try again.");
+    }
+  }, [locStatus]);
 
   const jobs = jobsQ.data ?? [];
   const active = jobs.filter((j) => j.status !== "completed" && j.status !== "cancelled");
@@ -71,6 +90,15 @@ const ProviderDashboard = () => {
             {online ? "Online" : "Offline"}
           </motion.button>
         </div>
+        {locStatus === "sharing" && (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-green-500">
+            <MapPin className="h-3.5 w-3.5" aria-hidden />
+            <span>Sharing your location with active clients</span>
+          </div>
+        )}
+        {locStatus === "requesting" && (
+          <div className="mt-2 text-xs text-muted-foreground">Requesting location permission…</div>
+        )}
       </div>
 
       <div className="px-6 space-y-5">
