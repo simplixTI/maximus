@@ -406,3 +406,29 @@ Deve mostrar `Status: verified`.
 **Localização não pede permissão no Android** — usuário já negou. Vá em Configurações → Apps → Maximus Solutions → Permissões → Localização → Permitir.
 
 **AAB rejeitado por permissão FOREGROUND_SERVICE** — algum plugin novo introduziu. Cheque `android/app/build/intermediates/merged_manifest/release/AndroidManifest.xml` e adicione outro `tools:node="remove"` no seu manifest.
+
+---
+
+## 15. Futuro: esconder URL do Supabase no consentimento do Google
+
+Hoje, quando o usuário faz login com Google pela 1ª vez, a tela de consentimento mostra `kcryjyznkxaoclrmbadi.supabase.co` como destino do redirect. Isso expõe o project ID do Supabase e reduz percepção de marca. **Decisão atual: aceitar essa exposição no MVP e migrar depois.** A migração é a **Supabase Custom Domain** feature.
+
+### Passos (quando decidir migrar)
+
+1. **Upgrade para plano Pro** (~$25/mo, inclui 1 custom domain).
+2. **Supabase Dashboard** → Settings → Custom Domains → digite `auth.maximussolutions.app`. Ele gera 1 CNAME + 1 TXT de verificação.
+3. **DNS** (Vercel/Cloudflare):
+   - `CNAME auth.maximussolutions.app → <valor-supabase>.supabase.co`
+   - `TXT _cf-custom-hostname.auth → <valor-supabase>`
+   Aguarde 5-30 min e clique **Activate** no dashboard.
+4. **Google Cloud Console** → Credentials → Web OAuth Client → Authorized redirect URIs:
+   - Remover: `https://kcryjyznkxaoclrmbadi.supabase.co/auth/v1/callback`
+   - Adicionar: `https://auth.maximussolutions.app/auth/v1/callback`
+5. **Código**: trocar 1 linha em `.env.local`:
+   ```env
+   VITE_SUPABASE_URL=https://auth.maximussolutions.app
+   ```
+   Depois `npm run build` (web) + `npm run android:bundle` (AAB), push para main.
+6. **Validar** com `curl https://auth.maximussolutions.app/auth/v1/health` → deve retornar `200 OK`. Fazer login com Google — tela de consentimento agora mostra `auth.maximussolutions.app`.
+
+Nenhuma alteração no `assetlinks.json` ou nos Redirect URLs do Supabase (Site URL + Redirect URLs já estão em `www.maximussolutions.app` e continuam iguais).
