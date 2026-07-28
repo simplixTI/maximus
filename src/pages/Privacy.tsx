@@ -1,10 +1,11 @@
-// NOTE: This template covers Play Store, Google OAuth Consent Screen and LGPD
-// baseline requirements. Have it reviewed by legal counsel before publishing
-// materially outside a limited MVP audience.
+// NOTE: Baseline privacy policy for a service marketplace app. Covers Play
+// Store, Google OAuth Consent Screen, GDPR and CCPA basics. Have it reviewed
+// by legal counsel before publishing beyond a limited MVP audience.
 
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "28 de julho de 2026";
+const LAST_UPDATED = "July 28, 2026";
+const CONTACT_EMAIL = "privacy@maximussolutions.app";
 
 export default function Privacy() {
   return (
@@ -12,172 +13,173 @@ export default function Privacy() {
       <div className="mx-auto max-w-3xl space-y-6">
         <header className="space-y-2">
           <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-            ← Voltar
+            ← Back
           </Link>
-          <h1 className="font-display text-3xl font-bold">Política de Privacidade</h1>
-          <p className="text-sm text-muted-foreground">Última atualização: {LAST_UPDATED}</p>
+          <h1 className="font-display text-3xl font-bold">Privacy Policy</h1>
+          <p className="text-sm text-muted-foreground">Last updated: {LAST_UPDATED}</p>
         </header>
 
         <section className="space-y-3 text-sm leading-relaxed">
           <p>
-            Esta Política de Privacidade descreve como a <strong>Maximus Solutions</strong> ("nós",
-            "nosso") coleta, usa, compartilha e protege as informações dos usuários do aplicativo
-            móvel Maximus Solutions e do site{" "}
+            This Privacy Policy describes how <strong>Maximus Solutions</strong> ("we", "our",
+            "us") collects, uses, shares, and protects information from users of the Maximus
+            Solutions mobile app and the website{" "}
             <a className="underline" href="https://www.maximussolutions.app">
               www.maximussolutions.app
             </a>{" "}
-            ("Serviço"). Ao usar o Serviço, você concorda com esta política.
+            (the "Service"). By using the Service, you agree to this policy.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">1. Controlador dos dados</h2>
+          <h2 className="font-display text-xl font-semibold">1. Data controller</h2>
           <p className="text-sm leading-relaxed">
-            O controlador dos dados pessoais é a <strong>Maximus Solutions</strong>. Para exercer
-            seus direitos (LGPD art. 18) ou tirar dúvidas, entre em contato pelo email{" "}
-            <a className="underline" href="mailto:privacy@maximussolutions.app">
-              privacy@maximussolutions.app
+            The controller of the personal data described here is <strong>Maximus Solutions</strong>.
+            To exercise your rights or ask questions, contact{" "}
+            <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>
+              {CONTACT_EMAIL}
             </a>
             .
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">2. Dados que coletamos</h2>
+          <h2 className="font-display text-xl font-semibold">2. Data we collect</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed">
             <li>
-              <strong>Dados de conta:</strong> nome completo, e-mail, telefone, foto de perfil,
-              tipo de conta (cliente ou prestador).
+              <strong>Account data:</strong> full name, email, phone number, avatar photo,
+              account type (client or provider).
             </li>
             <li>
-              <strong>Dados de cliente:</strong> endereço de atendimento, cidade, estado, CEP,
-              histórico de solicitações e agendamentos.
+              <strong>Client data:</strong> service address, city, state, ZIP code, request and
+              booking history.
             </li>
             <li>
-              <strong>Dados de prestador:</strong> nome comercial, CNPJ/EIN, documentos de
-              habilitação, especialidades, veículo (quando aplicável), avaliações e reputação.
+              <strong>Provider data:</strong> business name, EIN, license documents, skills,
+              vehicle information (when applicable), reviews and reputation.
             </li>
             <li>
-              <strong>Localização precisa (apenas prestadores, apenas em uso):</strong> quando o
-              prestador ativa "Online" para receber jobs, seu dispositivo compartilha
-              coordenadas GPS em tempo real para permitir que clientes com atendimento ativo
-              acompanhem sua chegada. A coleta é interrompida ao ficar offline, minimizar o app,
-              fazer logout ou encerrar o atendimento.{" "}
+              <strong>Precise location (providers only, only while the app is in use):</strong>{" "}
+              when a provider turns on "Online" to receive jobs, the device shares real-time GPS
+              coordinates so clients with an active booking can watch the provider en route.
+              Sharing stops as soon as the provider goes offline, backgrounds the app, signs
+              out, or ends the booking.{" "}
               <strong>
-                Não coletamos localização em segundo plano. Não fazemos geofencing. Clientes
-                finais não têm localização coletada pelo app.
+                We do not collect location in the background. We do not use geofencing.
+                Clients do not have their location collected by the app.
               </strong>
             </li>
             <li>
-              <strong>Fotos:</strong> imagens que você anexa a uma solicitação de serviço ou ao
-              perfil (upload voluntário).
+              <strong>Photos:</strong> images you attach to a service request or your profile
+              (voluntary upload).
             </li>
             <li>
-              <strong>Comunicações:</strong> mensagens trocadas no chat entre cliente e prestador
-              dentro de um atendimento.
+              <strong>Communications:</strong> chat messages exchanged between client and
+              provider within an active booking.
             </li>
             <li>
-              <strong>Pagamentos:</strong> processados por Stripe. Não armazenamos números
-              completos de cartão nem CVV em nossos servidores.
+              <strong>Payments:</strong> processed by Stripe. We do not store full card numbers
+              or CVVs on our servers.
             </li>
             <li>
-              <strong>Dados técnicos:</strong> logs de acesso, timestamps, identificadores de
-              sessão, tipo de dispositivo, sistema operacional, versão do app. Usados para
-              segurança, prevenção de fraude e melhoria do serviço.
+              <strong>Technical data:</strong> access logs, timestamps, session identifiers,
+              device type, operating system, app version. Used for security, fraud prevention
+              and product improvement.
             </li>
             <li>
-              <strong>Não coletamos:</strong> Advertising ID (AAID), contatos, agenda, mídia
-              não solicitada, histórico de navegação de outros apps.
+              <strong>We do NOT collect:</strong> Advertising ID (AAID), contacts, calendar,
+              unsolicited media, or browsing history from other apps.
             </li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">3. Finalidades do tratamento</h2>
+          <h2 className="font-display text-xl font-semibold">3. How we use data</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
-            <li>Autenticar sua conta e manter sua sessão ativa.</li>
-            <li>Conectar clientes e prestadores no marketplace de serviços.</li>
-            <li>Processar pagamentos e emitir comprovantes.</li>
-            <li>Permitir que clientes acompanhem a chegada do prestador em tempo real.</li>
-            <li>Enviar notificações operacionais (novo job, mensagem, atualização de status).</li>
-            <li>Investigar e prevenir fraude, abuso e violações dos termos de uso.</li>
-            <li>Cumprir obrigações legais e regulatórias.</li>
+            <li>Authenticate your account and keep your session active.</li>
+            <li>Connect clients and providers in the services marketplace.</li>
+            <li>Process payments and issue receipts.</li>
+            <li>Allow clients to track the provider's arrival in real time.</li>
+            <li>Send operational notifications (new job, message, status update).</li>
+            <li>Investigate and prevent fraud, abuse and violations of the Terms.</li>
+            <li>Comply with legal and regulatory obligations.</li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">4. Bases legais (LGPD art. 7)</h2>
+          <h2 className="font-display text-xl font-semibold">4. Legal bases</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
             <li>
-              <strong>Execução de contrato</strong> — prestação do serviço solicitado.
+              <strong>Performance of a contract</strong> — delivering the service you requested.
             </li>
             <li>
-              <strong>Consentimento</strong> — para localização em tempo real (pedida a cada
-              ativação de "Online").
+              <strong>Consent</strong> — for real-time location (requested each time a provider
+              activates "Online").
             </li>
             <li>
-              <strong>Legítimo interesse</strong> — prevenção de fraude, segurança e melhoria do
-              produto.
+              <strong>Legitimate interest</strong> — fraud prevention, security and product
+              improvement.
             </li>
             <li>
-              <strong>Cumprimento de obrigação legal</strong> — retenção fiscal, ordens
-              judiciais.
+              <strong>Legal obligation</strong> — tax retention, court orders.
             </li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">5. Compartilhamento com terceiros</h2>
+          <h2 className="font-display text-xl font-semibold">5. Third-party processors</h2>
           <p className="text-sm leading-relaxed">
-            Compartilhamos dados estritamente necessários com os seguintes operadores:
+            We share the minimum data necessary with the following processors:
           </p>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
             <li>
-              <strong>Supabase Inc.</strong> — banco de dados, autenticação, storage. Servidores
-              nos EUA.
+              <strong>Supabase Inc.</strong> — database, authentication, storage. Servers in
+              the United States.
             </li>
             <li>
-              <strong>Stripe, Inc.</strong> — processamento de pagamentos. Certificado PCI-DSS.
+              <strong>Stripe, Inc.</strong> — payment processing. PCI-DSS certified.
             </li>
             <li>
-              <strong>Google</strong> — quando você opta por entrar com Google (OAuth).
+              <strong>Google</strong> — when you choose to sign in with Google (OAuth).
             </li>
             <li>
-              <strong>Resend</strong> — envio de e-mails transacionais.
+              <strong>Resend</strong> — transactional email delivery.
             </li>
             <li>
-              <strong>Vercel</strong> — hospedagem da aplicação web.
+              <strong>Vercel</strong> — web application hosting.
             </li>
           </ul>
           <p className="text-sm leading-relaxed">
-            Todos os operadores são contratualmente obrigados a proteger os dados. Não vendemos
-            dados pessoais. Não compartilhamos localização com terceiros para fins de marketing.
-          </p>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">6. Retenção</h2>
-          <p className="text-sm leading-relaxed">
-            Mantemos os dados enquanto sua conta estiver ativa. Após exclusão da conta, apagamos
-            dados pessoais em até 30 dias, exceto informações que devemos reter por obrigação
-            legal (por exemplo, registros fiscais de pagamento por até 5 anos). Dados de
-            localização históricos são mantidos por até 90 dias para fins de auditoria de
-            atendimentos.
+            All processors are contractually required to protect data. We do not sell personal
+            data. We do not share location data with third parties for marketing.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">7. Seus direitos (LGPD art. 18)</h2>
+          <h2 className="font-display text-xl font-semibold">6. Retention</h2>
+          <p className="text-sm leading-relaxed">
+            We keep data while your account is active. After account deletion, personal data is
+            purged within 30 days, except records we must retain by law (for example, payment
+            and tax records for up to 7 years). Historical location data is kept for up to 90
+            days for booking audit purposes.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="font-display text-xl font-semibold">7. Your rights</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
-            <li>Confirmar se tratamos dados seus e acessá-los.</li>
-            <li>Corrigir dados incompletos, inexatos ou desatualizados.</li>
-            <li>Solicitar anonimização, bloqueio ou eliminação de dados desnecessários.</li>
-            <li>Portabilidade dos seus dados para outro fornecedor.</li>
-            <li>Revogar consentimento a qualquer momento (por exemplo, desativar "Online").</li>
+            <li>Confirm whether we process data about you and access it.</li>
+            <li>Correct incomplete, inaccurate or outdated data.</li>
+            <li>Request anonymization, blocking or deletion of unnecessary data.</li>
+            <li>Data portability to another provider.</li>
+            <li>Withdraw consent at any time (for example, turn "Online" off).</li>
             <li>
-              Solicitar exclusão da conta pelo email{" "}
-              <a className="underline" href="mailto:privacy@maximussolutions.app">
-                privacy@maximussolutions.app
+              <Link to="/account-deletion" className="underline">
+                Request account deletion
+              </Link>{" "}
+              via the in-app option or by emailing{" "}
+              <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>
+                {CONTACT_EMAIL}
               </a>
               .
             </li>
@@ -185,49 +187,53 @@ export default function Privacy() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">8. Segurança</h2>
+          <h2 className="font-display text-xl font-semibold">8. Security</h2>
           <p className="text-sm leading-relaxed">
-            Todos os dados trafegam por HTTPS/TLS. Senhas são armazenadas com hash seguro pelo
-            provedor de autenticação. Row Level Security (RLS) restringe acesso aos dados no
-            banco. O app não permite backup automático via ADB (backup Android desativado).
+            All data is transported over HTTPS/TLS. Passwords are securely hashed by our
+            authentication provider. Row Level Security (RLS) restricts data access in the
+            database. The app disables automatic Android backup (adb backup) to protect
+            sensitive data.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">9. Menores de idade</h2>
+          <h2 className="font-display text-xl font-semibold">9. Children</h2>
           <p className="text-sm leading-relaxed">
-            O Serviço é destinado a maiores de 18 anos. Não coletamos conscientemente dados de
-            menores. Se identificarmos, os dados serão excluídos imediatamente.
+            The Service is intended for users aged 18 and over. We do not knowingly collect
+            data from minors. If discovered, the data will be deleted immediately.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">10. Alterações desta política</h2>
+          <h2 className="font-display text-xl font-semibold">10. Changes to this policy</h2>
           <p className="text-sm leading-relaxed">
-            Podemos atualizar esta política. A data "Última atualização" no topo indica a
-            versão vigente. Mudanças materiais serão notificadas por e-mail ou notificação no
-            app.
+            We may update this policy. The "Last updated" date at the top indicates the
+            current version. Material changes will be notified by email or in-app notification.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">11. Contato</h2>
+          <h2 className="font-display text-xl font-semibold">11. Contact</h2>
           <p className="text-sm leading-relaxed">
-            Dúvidas, solicitações ou reclamações:{" "}
-            <a className="underline" href="mailto:privacy@maximussolutions.app">
-              privacy@maximussolutions.app
+            Questions, requests or complaints:{" "}
+            <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>
+              {CONTACT_EMAIL}
             </a>
-            . Encarregado de dados (DPO): a definir.
+            .
           </p>
         </section>
 
         <footer className="pt-8 text-sm text-muted-foreground">
           <Link to="/terms" className="underline">
-            Termos de Uso
+            Terms of Use
+          </Link>
+          <span className="mx-2">·</span>
+          <Link to="/account-deletion" className="underline">
+            Delete account
           </Link>
           <span className="mx-2">·</span>
           <Link to="/" className="underline">
-            Início
+            Home
           </Link>
         </footer>
       </div>

@@ -1,10 +1,9 @@
-// NOTE: Baseline Terms of Use template for a service marketplace app.
-// Have it reviewed by legal counsel before publishing materially outside a
-// limited MVP audience.
+// NOTE: Baseline Terms of Use template for a service marketplace app. Have
+// it reviewed by legal counsel before publishing beyond a limited MVP audience.
 
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "28 de julho de 2026";
+const LAST_UPDATED = "July 28, 2026";
 
 export default function Terms() {
   return (
@@ -12,165 +11,171 @@ export default function Terms() {
       <div className="mx-auto max-w-3xl space-y-6">
         <header className="space-y-2">
           <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-            ← Voltar
+            ← Back
           </Link>
-          <h1 className="font-display text-3xl font-bold">Termos de Uso</h1>
-          <p className="text-sm text-muted-foreground">Última atualização: {LAST_UPDATED}</p>
+          <h1 className="font-display text-3xl font-bold">Terms of Use</h1>
+          <p className="text-sm text-muted-foreground">Last updated: {LAST_UPDATED}</p>
         </header>
 
         <section className="space-y-3 text-sm leading-relaxed">
           <p>
-            Estes Termos regem o uso do aplicativo <strong>Maximus Solutions</strong> e do site{" "}
+            These Terms govern the use of the <strong>Maximus Solutions</strong> app and the
+            website{" "}
             <a className="underline" href="https://www.maximussolutions.app">
               www.maximussolutions.app
             </a>{" "}
-            (o "Serviço"), operados pela <strong>Maximus Solutions</strong> ("nós"). Ao criar
-            conta ou usar o Serviço, você concorda com estes Termos e com a{" "}
+            (the "Service"), operated by <strong>Maximus Solutions</strong> ("we"). By creating
+            an account or using the Service, you agree to these Terms and to the{" "}
             <Link to="/privacy" className="underline">
-              Política de Privacidade
+              Privacy Policy
             </Link>
             .
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">1. O que é o Serviço</h2>
+          <h2 className="font-display text-xl font-semibold">1. What the Service is</h2>
           <p className="text-sm leading-relaxed">
-            O Serviço é um marketplace que conecta <strong>clientes</strong> que precisam de
-            serviços residenciais a <strong>prestadores de serviço</strong> independentes.
-            Não somos empregadores dos prestadores; somos uma plataforma que facilita o
-            encontro, a comunicação, o agendamento e o pagamento.
+            The Service is a marketplace that connects <strong>clients</strong> who need home
+            services to independent <strong>service providers</strong>. We are not the
+            employer of providers; we are a platform that facilitates discovery, communication,
+            scheduling and payment.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">2. Elegibilidade</h2>
+          <h2 className="font-display text-xl font-semibold">2. Eligibility</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
-            <li>Você deve ter no mínimo 18 anos.</li>
-            <li>Deve fornecer informações verdadeiras e mantê-las atualizadas.</li>
-            <li>Você é responsável por manter a segurança da sua conta e senha.</li>
-            <li>Uma conta por pessoa. Contas duplicadas podem ser suspensas.</li>
+            <li>You must be at least 18 years old.</li>
+            <li>You must provide accurate information and keep it up to date.</li>
+            <li>You are responsible for the security of your account and password.</li>
+            <li>One account per person. Duplicate accounts may be suspended.</li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">3. Contas de cliente</h2>
+          <h2 className="font-display text-xl font-semibold">3. Client accounts</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
-            <li>Descreva com precisão o serviço solicitado.</li>
-            <li>Forneça endereço correto e esteja disponível no horário agendado.</li>
-            <li>Pague pelo serviço contratado após aceitar o orçamento.</li>
-            <li>Trate prestadores com respeito. Avaliações devem ser honestas.</li>
+            <li>Describe the requested service accurately.</li>
+            <li>Provide a correct address and be available at the scheduled time.</li>
+            <li>Pay for the service you accepted the quote for.</li>
+            <li>Treat providers with respect. Reviews must be honest.</li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">4. Contas de prestador</h2>
+          <h2 className="font-display text-xl font-semibold">4. Provider accounts</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
-            <li>Comprove suas habilidades e possua as licenças ou documentos exigidos.</li>
-            <li>Realize os serviços aceitos com competência e no prazo combinado.</li>
-            <li>Cumpra normas de segurança, trabalhistas e sanitárias aplicáveis.</li>
-            <li>Você é responsável por seus próprios impostos e obrigações trabalhistas.</li>
+            <li>Prove your skills and hold any required licenses or documents.</li>
+            <li>Perform accepted services competently and within the agreed timeframe.</li>
+            <li>Follow applicable safety, labor and sanitary regulations.</li>
+            <li>You are responsible for your own taxes and labor obligations.</li>
             <li>
-              O compartilhamento de localização em tempo real é acionado apenas quando você
-              ativa o modo "Online" e é usado exclusivamente para permitir o acompanhamento
-              pelo cliente do atendimento ativo.
+              Real-time location sharing is triggered only when you turn on "Online" and is
+              used exclusively to let the client of an active booking watch your arrival.
             </li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">5. Pagamentos</h2>
+          <h2 className="font-display text-xl font-semibold">5. Payments</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
-            <li>Pagamentos são processados por Stripe, Inc.</li>
-            <li>Cliente autoriza a cobrança ao aceitar o orçamento.</li>
+            <li>Payments are processed by Stripe, Inc.</li>
+            <li>The client authorizes the charge when accepting the quote.</li>
             <li>
-              A Maximus pode reter uma taxa de serviço sobre cada transação (divulgada antes do
-              aceite).
+              Maximus may retain a service fee on each transaction (disclosed before the client
+              accepts).
             </li>
             <li>
-              Reembolsos e disputas seguem a política vigente e a mediação da Maximus, sem
-              prejuízo dos direitos do consumidor previstos em lei.
+              Refunds and disputes follow the current policy and Maximus mediation, without
+              prejudice to consumer rights granted by applicable law.
             </li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">6. Cancelamento</h2>
+          <h2 className="font-display text-xl font-semibold">6. Cancellation</h2>
           <p className="text-sm leading-relaxed">
-            Você pode cancelar sua conta a qualquer momento pelas configurações do app ou pelo
-            email{" "}
+            You can cancel your account at any time from the app settings or by emailing{" "}
             <a className="underline" href="mailto:support@maximussolutions.app">
               support@maximussolutions.app
             </a>
-            . Nós podemos suspender ou encerrar contas que violarem estes Termos, mediante
-            aviso (exceto em casos graves).
+            . See also the{" "}
+            <Link to="/account-deletion" className="underline">
+              Account Deletion
+            </Link>{" "}
+            page. We may suspend or terminate accounts that violate these Terms, with notice
+            (except in serious cases).
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">7. Conteúdo do usuário</h2>
+          <h2 className="font-display text-xl font-semibold">7. User content</h2>
           <p className="text-sm leading-relaxed">
-            Você mantém a propriedade de fotos, textos e avaliações que envia. Ao publicar
-            conteúdo, concede à Maximus licença não exclusiva, gratuita e mundial para
-            hospedar, processar e exibir esse conteúdo dentro do Serviço. Você garante que
-            possui os direitos sobre o conteúdo enviado.
+            You retain ownership of the photos, text and reviews you submit. By posting
+            content, you grant Maximus a non-exclusive, royalty-free, worldwide license to
+            host, process and display that content within the Service. You warrant you have
+            the rights to the content submitted.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">8. Condutas proibidas</h2>
+          <h2 className="font-display text-xl font-semibold">8. Prohibited conduct</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">
-            <li>Fraude, lavagem de dinheiro ou pagamentos fora da plataforma para evitar taxas.</li>
-            <li>Assédio, discriminação, violência ou ameaças.</li>
-            <li>Falsificação de documentos, licenças ou avaliações.</li>
-            <li>Uso do Serviço para atividades ilegais.</li>
-            <li>Engenharia reversa ou tentativa de burlar controles técnicos.</li>
+            <li>
+              Fraud, money laundering or off-platform payments meant to avoid service fees.
+            </li>
+            <li>Harassment, discrimination, violence or threats.</li>
+            <li>Falsifying documents, licenses or reviews.</li>
+            <li>Using the Service for illegal activities.</li>
+            <li>Reverse engineering or attempts to bypass technical controls.</li>
           </ul>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">9. Isenção de garantias</h2>
+          <h2 className="font-display text-xl font-semibold">9. Disclaimer of warranties</h2>
           <p className="text-sm leading-relaxed">
-            A Maximus faz o razoável para verificar prestadores, mas não garante a qualidade,
-            segurança ou legalidade dos serviços prestados por terceiros. O Serviço é fornecido
-            "como está", sem garantias de disponibilidade contínua ou ausência de erros.
-            Nada nestes Termos afasta direitos irrenunciáveis do consumidor previstos em lei.
+            Maximus takes reasonable steps to verify providers but does not guarantee the
+            quality, safety or legality of services performed by third parties. The Service is
+            provided "as is", without warranties of uninterrupted availability or error-free
+            operation. Nothing in these Terms waives consumer rights that cannot be waived
+            under applicable law.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">10. Limitação de responsabilidade</h2>
+          <h2 className="font-display text-xl font-semibold">10. Limitation of liability</h2>
           <p className="text-sm leading-relaxed">
-            Na máxima extensão permitida em lei, a Maximus não responde por danos indiretos,
-            lucros cessantes, perda de dados, ou danos decorrentes de atos ou omissões de
-            prestadores. Nossa responsabilidade total agregada, quando aplicável, fica
-            limitada ao valor pago pelo cliente à Maximus nos 6 meses anteriores ao evento
-            que causou o dano.
+            To the maximum extent permitted by law, Maximus is not liable for indirect
+            damages, lost profits, loss of data, or damages arising from acts or omissions of
+            providers. Where limits apply, our total aggregate liability is capped at the
+            amount the client paid to Maximus in the 6 months preceding the event giving rise
+            to the claim.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">11. Lei aplicável e foro</h2>
+          <h2 className="font-display text-xl font-semibold">11. Governing law</h2>
           <p className="text-sm leading-relaxed">
-            Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito
-            o foro da comarca de São Paulo/SP para dirimir controvérsias, sem prejuízo do
-            direito do consumidor de propor ação no seu domicílio.
+            These Terms are governed by the laws of the jurisdiction where Maximus Solutions
+            is legally established. Consumer users retain the right to bring claims in their
+            place of residence where required by applicable consumer-protection law.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">12. Alterações destes Termos</h2>
+          <h2 className="font-display text-xl font-semibold">12. Changes to these Terms</h2>
           <p className="text-sm leading-relaxed">
-            Podemos atualizar estes Termos. Mudanças materiais serão notificadas por e-mail ou
-            no app com no mínimo 15 dias de antecedência. O uso continuado após a data de
-            vigência significa aceite.
+            We may update these Terms. Material changes will be notified by email or in-app
+            notification at least 15 days in advance. Continued use after the effective date
+            means acceptance.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-display text-xl font-semibold">13. Contato</h2>
+          <h2 className="font-display text-xl font-semibold">13. Contact</h2>
           <p className="text-sm leading-relaxed">
-            Dúvidas ou notificações jurídicas:{" "}
+            Questions or legal notices:{" "}
             <a className="underline" href="mailto:legal@maximussolutions.app">
               legal@maximussolutions.app
             </a>
@@ -180,11 +185,15 @@ export default function Terms() {
 
         <footer className="pt-8 text-sm text-muted-foreground">
           <Link to="/privacy" className="underline">
-            Política de Privacidade
+            Privacy Policy
+          </Link>
+          <span className="mx-2">·</span>
+          <Link to="/account-deletion" className="underline">
+            Delete account
           </Link>
           <span className="mx-2">·</span>
           <Link to="/" className="underline">
-            Início
+            Home
           </Link>
         </footer>
       </div>

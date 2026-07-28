@@ -19,6 +19,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
+import AccountDeletion from "./pages/AccountDeletion.tsx";
 import Install from "./pages/Install.tsx";
 
 // Client
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/account-deletion" element={<AccountDeletion />} />
             <Route path="/install" element={<Install />} />
 
             {/* Client */}
