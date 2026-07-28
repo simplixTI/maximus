@@ -18,6 +18,11 @@ dist-ssr
 .env.*.local
 !.env.example
 
+# Signing material — NEVER commit
+keystore.properties
+*.keystore
+*.jks
+
 # Supabase local
 supabase/.branches
 supabase/.temp

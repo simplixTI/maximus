@@ -24,7 +24,16 @@ android {
     }
     signingConfigs {
         release {
-            if (keystorePropertiesFile.exists()) {
+            def envStorePath = System.getenv("MAXIMUS_KEYSTORE_PATH")
+            def envStorePassword = System.getenv("MAXIMUS_KEYSTORE_PASSWORD")
+            def envKeyAlias = System.getenv("MAXIMUS_KEY_ALIAS")
+            def envKeyPassword = System.getenv("MAXIMUS_KEY_PASSWORD")
+            if (envStorePath && envStorePassword) {
+                storeFile = file(envStorePath)
+                storePassword = envStorePassword
+                keyAlias = envKeyAlias ?: "maximus"
+                keyPassword = envKeyPassword ?: envStorePassword
+            } else if (keystorePropertiesFile.exists()) {
                 storeFile = rootProject.file(keystoreProperties["storeFile"])
                 storePassword = keystoreProperties["storePassword"]
                 keyAlias = keystoreProperties["keyAlias"]
@@ -36,7 +45,8 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (keystorePropertiesFile.exists()) {
+            def hasEnvSigning = System.getenv("MAXIMUS_KEYSTORE_PATH") && System.getenv("MAXIMUS_KEYSTORE_PASSWORD")
+            if (hasEnvSigning || keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
             }
         }
