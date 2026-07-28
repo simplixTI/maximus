@@ -33,13 +33,15 @@
                 <data android:scheme="com.maximussolutions.app" />
             </intent-filter>
 
-            <!-- Android App Links (HTTPS) — verified via /.well-known/assetlinks.json -->
+            <!-- Android App Links (HTTPS) — verified via /.well-known/assetlinks.json at www.maximussolutions.app -->
             <intent-filter android:autoVerify="true" android:label="@string/title_activity_main">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="app.maximussolutions.app" />
-                <data android:scheme="https" android:host="maximussolutions.app" android:pathPrefix="/auth" />
+                <data
+                    android:scheme="https"
+                    android:host="www.maximussolutions.app"
+                    android:pathPrefix="/auth/callback" />
             </intent-filter>
 
         </activity>
