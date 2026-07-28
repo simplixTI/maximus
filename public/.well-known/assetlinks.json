@@ -1,11 +1,13 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.maximussolutions.app",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_RELEASE_KEYSTORE_SHA256_FINGERPRINT"
+        "14:C2:D1:59:38:D9:81:3D:74:24:DB:61:72:5E:69:D5:E6:D6:37:59:3D:F3:44:64:E9:0A:A6:A3:9B:5B:ED:CE"
       ]
     }
   }
