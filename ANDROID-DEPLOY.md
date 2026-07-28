@@ -119,21 +119,38 @@ Anote:
 
 ---
 
-## 5. Deep Links + App Links
+## 5. Deep Links + App Links (padronizado em HTTPS)
 
-### 5.1 Deep link custom-scheme
-- Scheme: `com.maximussolutions.app://auth/callback`
-- Já registrado em `AndroidManifest.xml` (intent-filter dentro de `.MainActivity`)
-- `src/contexts/AuthContext.tsx` intercepta via `@capacitor/app` `appUrlOpen` e chama `supabase.auth.exchangeCodeForSession(code)`
+O callback OAuth usa **um único URL canônico** para web e Android:
+```
+https://www.maximussolutions.app/auth/callback
+```
 
-### 5.2 Android App Links (HTTPS)
-- Hosts: `app.maximussolutions.app` (tudo) + `maximussolutions.app/auth/*`
-- `autoVerify="true"` no intent filter
-- Requer que **você publique** `assetlinks.json` no domínio:
+### 5.1 Web
+- Rota registrada em `src/App.tsx`: `<Route path="/auth/callback" element={<AuthCallback />} />`
+- Página em `src/pages/AuthCallback.tsx`: aguarda `session` (Supabase troca `?code=` automaticamente via `detectSessionInUrl: true`) e navega para `/`.
+
+### 5.2 Android App Links (HTTPS, exclusivo)
+- Intent filter único no `AndroidManifest.xml`:
+  ```xml
+  <intent-filter android:autoVerify="true">
+      <action android:name="android.intent.action.VIEW" />
+      <category android:name="android.intent.category.DEFAULT" />
+      <category android:name="android.intent.category.BROWSABLE" />
+      <data android:scheme="https"
+            android:host="www.maximussolutions.app"
+            android:pathPrefix="/auth/callback" />
+  </intent-filter>
   ```
-  https://maximussolutions.app/.well-known/assetlinks.json
-  ```
-  O arquivo já está em `public/.well-known/assetlinks.json`. **Substitua** o placeholder `REPLACE_WITH_RELEASE_KEYSTORE_SHA256_FINGERPRINT` pelo SHA-256 real da sua keystore de release.
+- **Custom scheme (`com.maximussolutions.app://`) foi removido** — não é mais necessário nem usado.
+- `src/contexts/AuthContext.tsx` intercepta o App Link via `@capacitor/app` `appUrlOpen` (match no prefixo HTTPS) e chama `supabase.auth.exchangeCodeForSession(code)`.
+
+### 5.3 assetlinks.json
+Publicado em:
+```
+https://www.maximussolutions.app/.well-known/assetlinks.json
+```
+com o SHA-256 real da keystore de release. Verificado HTTP 200 + JSON correto.
 
 - Após publicar, valide em:
   ```
@@ -150,14 +167,17 @@ Anote:
 ## 6. Configuração do Supabase
 
 ### 6.1 Redirect URLs
-No dashboard do projeto Supabase (Authentication → URL Configuration → Redirect URLs), adicione:
+No dashboard do projeto Supabase (Authentication → URL Configuration → Redirect URLs), adicione **apenas estes 2 URLs**:
 ```
-https://maximussolutions.app/login
-https://maximussolutions.app/reset-password
-https://app.maximussolutions.app/login
-com.maximussolutions.app://auth/callback
+https://www.maximussolutions.app/auth/callback
+https://www.maximussolutions.app/reset-password
 ```
-E o **Site URL**: `https://maximussolutions.app`
+E o **Site URL**: `https://www.maximussolutions.app`
+
+O primeiro cobre OAuth (Google) — mesmo URL para web e Android (via App Link).
+O segundo cobre o link de reset de senha enviado por email.
+**Não** adicione o custom-scheme `com.maximussolutions.app://` — não é mais usado.
+**Não** adicione URLs do apex `maximussolutions.app` (sem www) — o site redireciona 308 para www.
 
 ### 6.2 PKCE flow
 Já configurado em `src/lib/supabase.ts` (`flowType: "pkce"`). Nada a fazer no dashboard além dos URLs acima.

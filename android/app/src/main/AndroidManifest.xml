@@ -25,15 +25,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Custom-scheme deep link used by Supabase OAuth callback -->
-            <intent-filter android:label="@string/title_activity_main">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.maximussolutions.app" />
-            </intent-filter>
-
-            <!-- Android App Links (HTTPS) — verified via /.well-known/assetlinks.json at www.maximussolutions.app -->
+            <!-- Android App Links (HTTPS) — single OAuth callback path, verified via
+                 https://www.maximussolutions.app/.well-known/assetlinks.json -->
             <intent-filter android:autoVerify="true" android:label="@string/title_activity_main">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

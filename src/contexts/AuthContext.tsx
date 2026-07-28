@@ -7,7 +7,7 @@ import type { UserRole } from "@/lib/database.types";
 import { sendTransactionalEmail } from "@/lib/email";
 import { sendTransactionalSMS } from "@/lib/sms";
 import { insertNotification } from "@/hooks/notifications";
-import { isCapacitorNative, getAuthRedirectUrl, APP_URL_SCHEME } from "@/lib/platform";
+import { isCapacitorNative, getAuthRedirectUrl, AUTH_CALLBACK_URL } from "@/lib/platform";
 
 interface AuthState {
   session: Session | null;
@@ -30,7 +30,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
-const CALLBACK_PREFIX = `${APP_URL_SCHEME}://auth/callback`;
+const CALLBACK_PREFIX = AUTH_CALLBACK_URL;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithOAuth: AuthState["signInWithOAuth"] = async (provider) => {
-    const redirectTo = getAuthRedirectUrl("/login");
+    const redirectTo = getAuthRedirectUrl();
     const native = isCapacitorNative();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
