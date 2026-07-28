@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { App as CapApp, type URLOpenListenerEvent } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/lib/database.types";
 import { sendTransactionalEmail } from "@/lib/email";
 import { sendTransactionalSMS } from "@/lib/sms";
 import { insertNotification } from "@/hooks/notifications";
+import { isCapacitorNative, getAuthRedirectUrl, APP_URL_SCHEME } from "@/lib/platform";
 
 interface AuthState {
   session: Session | null;
@@ -27,6 +30,8 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
+const CALLBACK_PREFIX = `${APP_URL_SCHEME}://auth/callback`;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
@@ -47,6 +52,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isCapacitorNative()) return;
+
+    const handleUrl = async (event: URLOpenListenerEvent) => {
+      const url = event?.url;
+      if (!url || !url.startsWith(CALLBACK_PREFIX)) return;
+      try {
+        const parsed = new URL(url);
+        const code = parsed.searchParams.get("code");
+        const errorCode = parsed.searchParams.get("error");
+        const errorDesc = parsed.searchParams.get("error_description");
+        if (errorCode) {
+          console.warn("OAuth callback error:", errorCode, errorDesc);
+          await Browser.close().catch(() => undefined);
+          return;
+        }
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.warn("exchangeCodeForSession failed:", error.message);
+          } else if (data?.session) {
+            setSession(data.session);
+          }
+          await Browser.close().catch(() => undefined);
+        }
+      } catch (e) {
+        console.warn("Deep link handler failed:", e);
+      }
+    };
+
+    let removeHandle: (() => void) | undefined;
+    CapApp.addListener("appUrlOpen", handleUrl)
+      .then((h) => {
+        removeHandle = () => h.remove();
+      })
+      .catch(() => undefined);
+    return () => {
+      removeHandle?.();
+    };
   }, []);
 
   useEffect(() => {
@@ -73,11 +119,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithOAuth: AuthState["signInWithOAuth"] = async (provider) => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const redirectTo = getAuthRedirectUrl("/login");
+    const native = isCapacitorNative();
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/login` },
+      options: {
+        redirectTo,
+        skipBrowserRedirect: native,
+      },
     });
-    return { error: error?.message ?? null };
+    if (error) return { error: error.message };
+    if (native && data?.url) {
+      try {
+        await Browser.open({ url: data.url, presentationStyle: "popover" });
+      } catch (e) {
+        console.warn("Browser.open failed:", e);
+        return { error: "Unable to open browser for sign-in." };
+      }
+    }
+    return { error: null };
   };
 
   const signUp: AuthState["signUp"] = async ({
@@ -121,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword: AuthState["resetPassword"] = async (email) => {
-    const redirectTo = `${window.location.origin}/reset-password`;
+    const redirectTo = getAuthRedirectUrl("/reset-password");
     const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), {
       redirectTo,
     });
