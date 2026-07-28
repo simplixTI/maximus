@@ -1,8 +1,15 @@
 import { createRoot } from "react-dom/client";
-import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
+import { isCapacitorBuild } from "@/lib/platform";
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-registerSW({ immediate: true });
+if (!isCapacitorBuild()) {
+  const pwaModule = "virtual:pwa-register";
+  import(/* @vite-ignore */ pwaModule)
+    .then((m: { registerSW: (opts: { immediate: boolean }) => void }) => {
+      m.registerSW({ immediate: true });
+    })
+    .catch(() => undefined);
+}

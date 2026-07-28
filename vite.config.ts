@@ -4,6 +4,8 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
+const isCapacitorBuild = process.env.VITE_CAPACITOR === "1";
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -13,10 +15,14 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  define: {
+    "import.meta.env.VITE_CAPACITOR": JSON.stringify(process.env.VITE_CAPACITOR ?? ""),
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    VitePWA({
+    !isCapacitorBuild &&
+      VitePWA({
       registerType: "autoUpdate",
       includeAssets: [
         "favicon.ico",
