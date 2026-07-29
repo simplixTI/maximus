@@ -59,6 +59,9 @@ export default defineConfig(({ mode }) => ({
         // the network so FCM can hand it the current registration + config.
         globIgnores: ["**/firebase-messaging-sw.js"],
         navigateFallbackDenylist: [/^\/firebase-messaging-sw\.js$/],
+        // Main app chunk can exceed 2 MiB (lucide namespace + firebase); bump
+        // the precache limit — files still ship, only SW precache is affected.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         clientsClaim: true,
       },

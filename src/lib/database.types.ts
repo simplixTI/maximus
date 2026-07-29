@@ -343,6 +343,31 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["push_tokens"]["Row"]>;
       };
+      job_types: {
+        Row: {
+          id: string;
+          slug: string;
+          label: string;
+          icon: string | null;
+          description: string | null;
+          active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          label: string;
+          icon?: string | null;
+          description?: string | null;
+          active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["job_types"]["Row"]>;
+      };
       notification_preferences: {
         Row: {
           user_id: string;

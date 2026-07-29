@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Camera, X, AlertTriangle, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { ServiceRequestData } from "@/pages/client/ServiceRequest";
+import { useJobTypes } from "@/hooks/jobTypes";
 
-const CATEGORIES = [
+// Fallback used when the network call fails or returns empty — matches the
+// seed in supabase/migrations/0008_job_types.sql so the flow keeps working
+// offline / before the migration is applied.
+const FALLBACK_CATEGORIES = [
   "Plumbing", "Electrical", "HVAC", "Roofing", "Painting",
   "Flooring", "Landscaping", "Cleaning", "Pest Control",
   "Carpentry", "Appliance Repair", "General Maintenance",
@@ -25,6 +29,12 @@ interface Props {
 
 const StepDetails = ({ data, update, onNext }: Props) => {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const jobTypesQ = useJobTypes();
+  const categories = useMemo<string[]>(() => {
+    const rows = jobTypesQ.data;
+    if (rows && rows.length > 0) return rows.map((r) => r.label);
+    return FALLBACK_CATEGORIES;
+  }, [jobTypesQ.data]);
 
   const toggleCategory = (cat: string) => {
     const cats = data.categories.includes(cat)
@@ -62,7 +72,7 @@ const StepDetails = ({ data, update, onNext }: Props) => {
       <div>
         <Label className="mb-2 block text-sm text-muted-foreground">Service Categories</Label>
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const active = data.categories.includes(cat);
             return (
               <button
