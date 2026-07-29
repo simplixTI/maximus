@@ -314,6 +314,48 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Row"]>;
       };
+      push_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          token: string;
+          platform: "android" | "ios" | "web";
+          device_id: string | null;
+          app_version: string | null;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+          last_used_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          token: string;
+          platform: "android" | "ios" | "web";
+          device_id?: string | null;
+          app_version?: string | null;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          last_used_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["push_tokens"]["Row"]>;
+      };
+      notification_preferences: {
+        Row: {
+          user_id: string;
+          category: "services" | "messages" | "appointments" | "general";
+          enabled: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          category: "services" | "messages" | "appointments" | "general";
+          enabled?: boolean;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notification_preferences"]["Row"]>;
+      };
     };
     Views: Record<string, never>;
     Functions: {

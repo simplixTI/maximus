@@ -55,6 +55,10 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
+        // Never precache the Firebase Messaging SW — it must load fresh from
+        // the network so FCM can hand it the current registration + config.
+        globIgnores: ["**/firebase-messaging-sw.js"],
+        navigateFallbackDenylist: [/^\/firebase-messaging-sw\.js$/],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
       },

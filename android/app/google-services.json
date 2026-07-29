@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "499240641079",
+    "project_id": "maximus-f0e7b",
+    "storage_bucket": "maximus-f0e7b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499240641079:android:8abd3f95e6bd9bb3df55b2",
+        "android_client_info": {
+          "package_name": "com.maximussolutions.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsRZblmXWGkKm8SVD7jgocQUnUD9L_qEE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

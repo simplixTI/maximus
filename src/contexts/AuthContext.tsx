@@ -7,6 +7,7 @@ import type { UserRole } from "@/lib/database.types";
 import { sendTransactionalEmail } from "@/lib/email";
 import { sendTransactionalSMS } from "@/lib/sms";
 import { insertNotification } from "@/hooks/notifications";
+import { deactivateCurrentDevicePushToken } from "@/hooks/push";
 import { isCapacitorNative, getAuthRedirectUrl, AUTH_CALLBACK_URL } from "@/lib/platform";
 
 interface AuthState {
@@ -177,6 +178,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Deactivate THIS device's push token before dropping the session so RLS
+    // still permits the update. Other devices of the same user are untouched.
+    await deactivateCurrentDevicePushToken();
     await supabase.auth.signOut();
   };
 

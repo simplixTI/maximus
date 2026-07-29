@@ -2,9 +2,11 @@ import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useRealtimeNotifications, type NotificationRow } from "@/hooks/notifications";
+import { usePushRegistration } from "@/hooks/push";
 
 export default function RealtimeNotifier() {
   const navigate = useNavigate();
+  usePushRegistration();
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
