@@ -1,5 +1,7 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -55,19 +57,30 @@ import ProviderSupport from "./pages/provider/ProviderSupport.tsx";
 // Shared
 import Chat from "./pages/shared/Chat.tsx";
 
-// Admin
-import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
-import AdminUsers from "./pages/admin/AdminUsers.tsx";
-import AdminApprovals from "./pages/admin/AdminApprovals.tsx";
-import AdminJobs from "./pages/admin/AdminJobs.tsx";
-import AdminQuotes from "./pages/admin/AdminQuotes.tsx";
-import AdminServiceTypes from "./pages/admin/AdminServiceTypes.tsx";
+// Admin — lazy-loaded so Recharts + admin CRUD chunks don't ship in the
+// initial bundle for client/provider users (they never navigate there).
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.tsx"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
+const AdminApprovals = lazy(() => import("./pages/admin/AdminApprovals.tsx"));
+const AdminJobs = lazy(() => import("./pages/admin/AdminJobs.tsx"));
+const AdminQuotes = lazy(() => import("./pages/admin/AdminQuotes.tsx"));
+const AdminServiceTypes = lazy(() => import("./pages/admin/AdminServiceTypes.tsx"));
+
+const AdminFallback = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <Loader2 className="h-6 w-6 animate-spin text-accent" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
 const client = (el: JSX.Element) => <ProtectedRoute allow="client">{el}</ProtectedRoute>;
 const provider = (el: JSX.Element) => <ProtectedRoute allow="provider">{el}</ProtectedRoute>;
-const admin = (el: JSX.Element) => <ProtectedRoute allow="admin">{el}</ProtectedRoute>;
+const admin = (el: JSX.Element) => (
+  <ProtectedRoute allow="admin">
+    <Suspense fallback={<AdminFallback />}>{el}</Suspense>
+  </ProtectedRoute>
+);
 const anyAuth = (el: JSX.Element) => <ProtectedRoute>{el}</ProtectedRoute>;
 
 const App = () => (
