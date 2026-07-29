@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { ServiceRequestData } from "@/pages/client/ServiceRequest";
-import { useJobTypes } from "@/hooks/jobTypes";
+import { useServiceTypes } from "@/hooks/serviceTypes";
 
 // Fallback used when the network call fails or returns empty — matches the
-// seed in supabase/migrations/0008_job_types.sql so the flow keeps working
+// seed in supabase/migrations/0008_service_types.sql so the flow keeps working
 // offline / before the migration is applied.
 const FALLBACK_CATEGORIES = [
   "Plumbing", "Electrical", "HVAC", "Roofing", "Painting",
@@ -29,12 +29,12 @@ interface Props {
 
 const StepDetails = ({ data, update, onNext }: Props) => {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
-  const jobTypesQ = useJobTypes();
+  const serviceTypesQ = useServiceTypes();
   const categories = useMemo<string[]>(() => {
-    const rows = jobTypesQ.data;
+    const rows = serviceTypesQ.data;
     if (rows && rows.length > 0) return rows.map((r) => r.label);
     return FALLBACK_CATEGORIES;
-  }, [jobTypesQ.data]);
+  }, [serviceTypesQ.data]);
 
   const toggleCategory = (cat: string) => {
     const cats = data.categories.includes(cat)

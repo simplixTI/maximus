@@ -389,7 +389,7 @@ const AdminDashboard = () => {
     { path: "/admin/approvals", label: "Approvals", desc: "Pending", icon: UserCheck, tint: orange, badge: m?.pendingApprovals },
     { path: "/admin/jobs", label: "Jobs", desc: "Live ops", icon: Wrench, tint: emerald, badge: m?.activeJobs },
     { path: "/admin/quotes", label: "Quotes", desc: "Send + track", icon: FileText, tint: violet },
-    { path: "/admin/job-types", label: "Job Types", desc: "Categories", icon: Tags, tint: cyan },
+    { path: "/admin/service-types", label: "Service Types", desc: "Categories", icon: Tags, tint: cyan },
   ];
 
   const activityIcon = (kind: ActivityRow["kind"]) => {

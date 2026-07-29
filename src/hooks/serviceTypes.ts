@@ -2,26 +2,26 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/database.types";
 
-export type JobTypeRow = Database["public"]["Tables"]["job_types"]["Row"];
-export type JobTypeInsert = Database["public"]["Tables"]["job_types"]["Insert"];
-export type JobTypeUpdate = Database["public"]["Tables"]["job_types"]["Update"];
+export type ServiceTypeRow = Database["public"]["Tables"]["service_types"]["Row"];
+export type ServiceTypeInsert = Database["public"]["Tables"]["service_types"]["Insert"];
+export type ServiceTypeUpdate = Database["public"]["Tables"]["service_types"]["Update"];
 
 /**
  * Client-facing hook — only returns active types, sorted for display. RLS
  * ensures anon + non-admin auth users only see active rows.
  */
-export function useJobTypes() {
-  return useQuery<JobTypeRow[]>({
-    queryKey: ["job-types", "active"],
+export function useServiceTypes() {
+  return useQuery<ServiceTypeRow[]>({
+    queryKey: ["service-types", "active"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("job_types")
+        .from("service_types")
         .select("*")
         .eq("active", true)
         .order("sort_order", { ascending: true })
         .order("label", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as JobTypeRow[];
+      return (data ?? []) as ServiceTypeRow[];
     },
     staleTime: 60_000,
   });
@@ -31,63 +31,63 @@ export function useJobTypes() {
  * Admin-facing hook — includes inactive types so ops can toggle them back on.
  * RLS lets admins see everything.
  */
-export function useAllJobTypes() {
-  return useQuery<JobTypeRow[]>({
-    queryKey: ["job-types", "all"],
+export function useAllServiceTypes() {
+  return useQuery<ServiceTypeRow[]>({
+    queryKey: ["service-types", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("job_types")
+        .from("service_types")
         .select("*")
         .order("sort_order", { ascending: true })
         .order("label", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as JobTypeRow[];
+      return (data ?? []) as ServiceTypeRow[];
     },
   });
 }
 
 function invalidate(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({ queryKey: ["job-types"] });
+  qc.invalidateQueries({ queryKey: ["service-types"] });
 }
 
-export function useCreateJobType() {
+export function useCreateServiceType() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: JobTypeInsert) => {
+    mutationFn: async (input: ServiceTypeInsert) => {
       const { data, error } = await supabase
-        .from("job_types")
+        .from("service_types")
         .insert(input)
         .select("*")
         .single();
       if (error) throw error;
-      return data as JobTypeRow;
+      return data as ServiceTypeRow;
     },
     onSuccess: () => invalidate(qc),
   });
 }
 
-export function useUpdateJobType() {
+export function useUpdateServiceType() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: JobTypeUpdate }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: ServiceTypeUpdate }) => {
       const { data, error } = await supabase
-        .from("job_types")
+        .from("service_types")
         .update(patch)
         .eq("id", id)
         .select("*")
         .single();
       if (error) throw error;
-      return data as JobTypeRow;
+      return data as ServiceTypeRow;
     },
     onSuccess: () => invalidate(qc),
   });
 }
 
-export function useDeleteJobType() {
+export function useDeleteServiceType() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("job_types").delete().eq("id", id);
+      const { error } = await supabase.from("service_types").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => invalidate(qc),

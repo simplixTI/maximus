@@ -343,7 +343,7 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["push_tokens"]["Row"]>;
       };
-      job_types: {
+      service_types: {
         Row: {
           id: string;
           slug: string;
@@ -366,7 +366,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["job_types"]["Row"]>;
+        Update: Partial<Database["public"]["Tables"]["service_types"]["Row"]>;
       };
       notification_preferences: {
         Row: {

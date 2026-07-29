@@ -61,7 +61,7 @@ import AdminUsers from "./pages/admin/AdminUsers.tsx";
 import AdminApprovals from "./pages/admin/AdminApprovals.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
 import AdminQuotes from "./pages/admin/AdminQuotes.tsx";
-import AdminJobTypes from "./pages/admin/AdminJobTypes.tsx";
+import AdminServiceTypes from "./pages/admin/AdminServiceTypes.tsx";
 
 const queryClient = new QueryClient();
 
@@ -129,7 +129,7 @@ const App = () => (
             <Route path="/admin/approvals" element={admin(<AdminApprovals />)} />
             <Route path="/admin/jobs" element={admin(<AdminJobs />)} />
             <Route path="/admin/quotes" element={admin(<AdminQuotes />)} />
-            <Route path="/admin/job-types" element={admin(<AdminJobTypes />)} />
+            <Route path="/admin/service-types" element={admin(<AdminServiceTypes />)} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />

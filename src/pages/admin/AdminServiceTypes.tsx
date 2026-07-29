@@ -32,13 +32,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  useAllJobTypes,
-  useCreateJobType,
-  useUpdateJobType,
-  useDeleteJobType,
+  useAllServiceTypes,
+  useCreateServiceType,
+  useUpdateServiceType,
+  useDeleteServiceType,
   slugify,
-  type JobTypeRow,
-} from "@/hooks/jobTypes";
+  type ServiceTypeRow,
+} from "@/hooks/serviceTypes";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "active" | "inactive";
@@ -46,7 +46,7 @@ type Filter = "all" | "active" | "inactive";
 type EditorState =
   | { mode: "closed" }
   | { mode: "create" }
-  | { mode: "edit"; row: JobTypeRow };
+  | { mode: "edit"; row: ServiceTypeRow };
 
 // Render a lucide icon by string name; falls back to Wrench.
 function IconByName({ name, className }: { name: string | null; className?: string }) {
@@ -59,17 +59,17 @@ function IconByName({ name, className }: { name: string | null; className?: stri
   return <Icon className={className} />;
 }
 
-const AdminJobTypes = () => {
+const AdminServiceTypes = () => {
   const navigate = useNavigate();
-  const listQ = useAllJobTypes();
-  const createMut = useCreateJobType();
-  const updateMut = useUpdateJobType();
-  const deleteMut = useDeleteJobType();
+  const listQ = useAllServiceTypes();
+  const createMut = useCreateServiceType();
+  const updateMut = useUpdateServiceType();
+  const deleteMut = useDeleteServiceType();
 
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
-  const [toDelete, setToDelete] = useState<JobTypeRow | null>(null);
+  const [toDelete, setToDelete] = useState<ServiceTypeRow | null>(null);
 
   const rows = listQ.data ?? [];
 
@@ -96,7 +96,7 @@ const AdminJobTypes = () => {
     [rows],
   );
 
-  const toggleActive = async (row: JobTypeRow) => {
+  const toggleActive = async (row: ServiceTypeRow) => {
     try {
       await updateMut.mutateAsync({ id: row.id, patch: { active: !row.active } });
     } catch (e) {
@@ -191,7 +191,7 @@ const AdminJobTypes = () => {
             <div className="rounded-2xl border border-dashed border-border bg-card/40 p-10 text-center">
               <Sparkles className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
               <p className="font-display text-sm font-semibold text-foreground">
-                {q ? "No matches" : "No job types yet"}
+                {q ? "No matches" : "No service types yet"}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {q
@@ -278,7 +278,7 @@ const AdminJobTypes = () => {
         </div>
       </div>
 
-      <JobTypeEditor
+      <ServiceTypeEditor
         state={editor}
         onClose={() => setEditor({ mode: "closed" })}
         onSubmit={async (payload) => {
@@ -308,7 +308,7 @@ const AdminJobTypes = () => {
       <AlertDialog open={!!toDelete} onOpenChange={(open) => !open && setToDelete(null)}>
         <AlertDialogContent className="border-border bg-card text-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">Delete this job type?</AlertDialogTitle>
+            <AlertDialogTitle className="font-display">Delete this service type?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
               <span className="text-foreground">"{toDelete?.label}"</span> will be removed
               permanently. Existing service requests that already used this category will keep
@@ -333,7 +333,7 @@ const AdminJobTypes = () => {
   );
 };
 
-function nextSortOrder(rows: JobTypeRow[]): number {
+function nextSortOrder(rows: ServiceTypeRow[]): number {
   return rows.length === 0 ? 10 : Math.max(...rows.map((r) => r.sort_order)) + 10;
 }
 
@@ -344,11 +344,11 @@ function nextSortOrder(rows: JobTypeRow[]): number {
 type EditorProps = {
   state: EditorState;
   onClose: () => void;
-  onSubmit: (payload: Partial<JobTypeRow>) => Promise<void>;
+  onSubmit: (payload: Partial<ServiceTypeRow>) => Promise<void>;
   saving: boolean;
 };
 
-const JobTypeEditor = ({ state, onClose, onSubmit, saving }: EditorProps) => {
+const ServiceTypeEditor = ({ state, onClose, onSubmit, saving }: EditorProps) => {
   const isEdit = state.mode === "edit";
   const initial = isEdit ? state.row : null;
 
@@ -391,7 +391,7 @@ const JobTypeEditor = ({ state, onClose, onSubmit, saving }: EditorProps) => {
 
   const submit = async () => {
     if (!valid) return;
-    const payload: Partial<JobTypeRow> = {
+    const payload: Partial<ServiceTypeRow> = {
       label: label.trim(),
       slug: effectiveSlug,
       icon: icon.trim() || null,
@@ -408,7 +408,7 @@ const JobTypeEditor = ({ state, onClose, onSubmit, saving }: EditorProps) => {
       <DialogContent className="max-w-md border-border bg-card text-foreground">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">
-            {isEdit ? `Edit ${state.row.label}` : "New job type"}
+            {isEdit ? `Edit ${state.row.label}` : "New service type"}
           </DialogTitle>
         </DialogHeader>
 
@@ -550,4 +550,4 @@ const JobTypeEditor = ({ state, onClose, onSubmit, saving }: EditorProps) => {
   );
 };
 
-export default AdminJobTypes;
+export default AdminServiceTypes;
