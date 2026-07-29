@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-256.webp";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
@@ -54,7 +54,7 @@ const Login = () => {
       >
         {/* Logo */}
         <div className="mb-8 flex justify-center">
-          <img src={logo} alt="Maximus Solutions Group" className="h-28 w-28 object-contain" />
+          <img src={logo} alt="Maximus Solutions Group" width={112} height={112} fetchPriority="high" decoding="async" className="h-28 w-28 object-contain" />
         </div>
 
         {/* OAuth */}

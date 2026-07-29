@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, Wrench } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-256.webp";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
@@ -28,6 +28,10 @@ const Index = () => {
         <img
           src={logo}
           alt="Maximus Solutions Group"
+          width={224}
+          height={224}
+          fetchPriority="high"
+          decoding="async"
           className="mb-4 h-48 w-48 object-contain sm:h-56 sm:w-56"
         />
       </motion.div>

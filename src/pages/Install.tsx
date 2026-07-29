@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Download, Share, Plus, CheckCircle2, Smartphone, MonitorSmartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-256.webp";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 const Install = () => {
@@ -35,7 +35,7 @@ const Install = () => {
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="relative">
             <div className="absolute inset-0 rounded-3xl bg-gradient-orange opacity-30 blur-2xl" />
-            <img src={logo} alt="Maximus" className="relative h-28 w-28 rounded-3xl object-contain" />
+            <img src={logo} alt="Maximus" width={112} height={112} fetchPriority="high" decoding="async" className="relative h-28 w-28 rounded-3xl object-contain" />
           </div>
           <h1 className="mt-6 font-display text-3xl font-bold text-foreground">Get the app</h1>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
