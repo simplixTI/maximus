@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+/* Google Fonts moved to <link rel="stylesheet"> in index.html for parallel
+   fetching + preconnect. CSS @import is render-blocking and defers font
+   discovery until after the CSS parses — causes CLS from late font swap. */
 
 @tailwind base;
 @tailwind components;
