@@ -53,8 +53,13 @@ create policy "push_tokens: owner read" on public.push_tokens
   for select using (auth.uid() = user_id);
 create policy "push_tokens: owner insert" on public.push_tokens
   for insert with check (auth.uid() = user_id);
-create policy "push_tokens: owner update" on public.push_tokens
-  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- FCM tokens are per-device, not per-user. When two users share a browser,
+-- the second login legitimately owns the token — must be able to update the
+-- row previously owned by user A. USING allows any authenticated caller;
+-- WITH CHECK still forces user_id to the current auth.uid() so nobody can
+-- reassign a token to a third party.
+create policy "push_tokens: any auth reassigns to self" on public.push_tokens
+  for update using (auth.uid() is not null) with check (auth.uid() = user_id);
 create policy "push_tokens: owner delete" on public.push_tokens
   for delete using (auth.uid() = user_id);
 
