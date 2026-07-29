@@ -167,7 +167,7 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
             htmlFor="budget-estimate"
             className="font-display text-sm font-medium text-foreground"
           >
-            Estimativa de gasto
+            Budget estimate
           </Label>
           <span
             className={cn(
@@ -177,7 +177,7 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
                 : "bg-destructive/15 text-destructive",
             )}
           >
-            {budgetOk ? "Definido" : "Obrigatório"}
+            {budgetOk ? "Set" : "Required"}
           </span>
         </div>
 
@@ -212,8 +212,8 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
         </div>
 
         <p className="relative mt-3 text-xs leading-relaxed text-muted-foreground">
-          Nos ajuda a preparar uma cotação alinhada ao seu orçamento. Você pode
-          aceitar ou negociar quando ela chegar.
+          Helps us prepare a quote aligned with your budget. You can accept or
+          negotiate when it arrives.
         </p>
 
         <div className="relative mt-4 flex flex-wrap gap-2">
