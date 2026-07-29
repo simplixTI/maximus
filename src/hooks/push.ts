@@ -157,14 +157,25 @@ export function usePushRegistration(): void {
           }
           if (permission !== "granted") return;
 
-          const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-            scope: "/firebase-cloud-messaging-push-scope",
-          });
+          // Let Firebase auto-register /firebase-messaging-sw.js at its own
+          // internal scope. Passing a hand-registered registration + custom
+          // scope races with the Workbox PWA SW and fails PushManager.subscribe.
+          // Small settle delay for any concurrent SW activation.
+          await new Promise((r) => setTimeout(r, 500));
 
-          const fcmToken = await getToken(messaging, {
-            vapidKey: FIREBASE_VAPID_KEY,
-            serviceWorkerRegistration: swReg,
-          });
+          let fcmToken: string | null = null;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              fcmToken = await getToken(messaging, { vapidKey: FIREBASE_VAPID_KEY });
+              break;
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              const transient =
+                /InvalidStateError|closing|no active Service Worker|AbortError/i.test(msg);
+              if (attempt === 2 || !transient) throw err;
+              await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+            }
+          }
           if (!fcmToken) return;
 
           currentToken = fcmToken;
