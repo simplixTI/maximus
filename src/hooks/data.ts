@@ -245,6 +245,7 @@ export function useCreateServiceRequest() {
       address: string;
       scheduled_at?: string | null;
       photos?: File[];
+      estimated_budget: number;
     }) => {
       if (!user) throw new Error("Not authenticated");
 
@@ -272,6 +273,7 @@ export function useCreateServiceRequest() {
           scheduled_at: input.scheduled_at ?? null,
           photos: photoPaths,
           status: "draft",
+          estimated_budget: input.estimated_budget,
         })
         .select("id")
         .single();

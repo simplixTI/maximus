@@ -17,6 +17,8 @@ export interface ServiceRequestData {
   photos: File[];
   scheduledDate: Date | undefined;
   scheduledTime: string;
+  // Raw digits string ("500") — parsed to Number on submit. Empty = not filled.
+  budgetEstimate: string;
 }
 
 const STEPS = ["Property", "Intent", "Details", "Schedule"];
@@ -48,6 +50,7 @@ const ServiceRequest = () => {
     photos: [],
     scheduledDate: undefined,
     scheduledTime: "",
+    budgetEstimate: "",
   });
 
   const update = (partial: Partial<ServiceRequestData>) =>
@@ -94,6 +97,7 @@ const ServiceRequest = () => {
                   photos: [],
                   scheduledDate: undefined,
                   scheduledTime: "",
+                  budgetEstimate: "",
                 });
                 navigate("/client/request", { replace: true, state: null });
               }}

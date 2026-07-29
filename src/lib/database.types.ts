@@ -128,6 +128,7 @@ export interface Database {
           status: RequestStatus;
           scheduled_at: string | null;
           estimated_cost: number | null;
+          estimated_budget: number | null;
           created_at: string;
         };
         Insert: {
@@ -140,6 +141,7 @@ export interface Database {
           status?: RequestStatus;
           scheduled_at?: string | null;
           estimated_cost?: number | null;
+          estimated_budget?: number | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["service_requests"]["Row"]>;

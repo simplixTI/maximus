@@ -18,7 +18,24 @@
     <meta name="apple-mobile-web-app-title" content="Maximus" />
     <style>
       html, body, #root { background: #000; }
-      body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+      body { margin: 0; }
+      /* Push all app content below the notch / dynamic island and above the
+         home indicator. Applied on #root (not body) so children using
+         `h-screen` / `min-h-screen` still start below the safe area. */
+      #root {
+        min-height: 100vh;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        box-sizing: border-box;
+      }
+      /* Utility classes for pages that need per-element control. */
+      .pt-safe { padding-top: env(safe-area-inset-top); }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      .h-screen-safe {
+        height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
     </style>
 
     <title>Maximus Solutions Group</title>

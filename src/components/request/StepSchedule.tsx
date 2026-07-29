@@ -19,6 +19,12 @@ const TIME_SLOTS = [
   "4:00 PM", "5:00 PM",
 ];
 
+const BUDGET_PRESETS = [100, 250, 500, 1000, 2500];
+
+const digitsOnly = (v: string) => v.replace(/\D+/g, "").slice(0, 7);
+const formatUsd = (digits: string) =>
+  digits ? Number(digits).toLocaleString("en-US") : "";
+
 interface Props {
   data: ServiceRequestData;
   update: (partial: Partial<ServiceRequestData>) => void;
@@ -67,6 +73,7 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
         address,
         scheduled_at,
         photos: data.photos,
+        estimated_budget: Number(data.budgetEstimate),
       });
       setSubmitted(true);
       toast.success("Request submitted — waiting for quote");
@@ -78,7 +85,8 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
     }
   };
 
-  const canSubmit = isAsap || (data.scheduledDate && data.scheduledTime);
+  const budgetOk = Number(data.budgetEstimate) > 0;
+  const canSubmit = budgetOk && (isAsap || (data.scheduledDate && data.scheduledTime));
 
   if (submitted) {
     return (
@@ -136,6 +144,98 @@ const StepSchedule = ({ data, update, navigate }: Props) => {
             <span className="text-sm font-medium text-foreground">{data.photos.length} attached</span>
           </div>
         )}
+      </div>
+
+      {/* Budget estimate — required, always shown (ASAP + scheduled) */}
+      <div
+        className={cn(
+          "group relative overflow-hidden rounded-2xl border bg-card p-5 transition-colors",
+          budgetOk ? "border-accent/40" : "border-border",
+        )}
+      >
+        {/* Ambient glow when active — pure CSS, no animation cost when idle */}
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl transition-opacity",
+            budgetOk ? "bg-accent/20 opacity-100" : "opacity-0",
+          )}
+        />
+
+        <div className="relative flex items-center justify-between">
+          <Label
+            htmlFor="budget-estimate"
+            className="font-display text-sm font-medium text-foreground"
+          >
+            Estimativa de gasto
+          </Label>
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest transition-colors",
+              budgetOk
+                ? "bg-accent/15 text-accent"
+                : "bg-destructive/15 text-destructive",
+            )}
+          >
+            {budgetOk ? "Definido" : "Obrigatório"}
+          </span>
+        </div>
+
+        <div className="relative mt-4 flex items-baseline gap-1.5">
+          <span
+            className={cn(
+              "font-display text-4xl font-light leading-none transition-colors",
+              budgetOk ? "text-accent" : "text-muted-foreground/60",
+            )}
+          >
+            $
+          </span>
+          <input
+            id="budget-estimate"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            aria-required="true"
+            aria-invalid={!budgetOk}
+            value={formatUsd(data.budgetEstimate)}
+            onChange={(e) => update({ budgetEstimate: digitsOnly(e.target.value) })}
+            placeholder="0"
+            className="w-full border-none bg-transparent p-0 font-display text-4xl font-light leading-none tracking-tight text-foreground outline-none placeholder:text-muted-foreground/30 tabular-nums focus:outline-none focus:ring-0"
+          />
+        </div>
+
+        <div className="relative mt-1 flex items-center gap-2">
+          <div className="h-px flex-1 bg-gradient-to-r from-accent/40 via-border to-transparent" />
+          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            USD
+          </span>
+        </div>
+
+        <p className="relative mt-3 text-xs leading-relaxed text-muted-foreground">
+          Nos ajuda a preparar uma cotação alinhada ao seu orçamento. Você pode
+          aceitar ou negociar quando ela chegar.
+        </p>
+
+        <div className="relative mt-4 flex flex-wrap gap-2">
+          {BUDGET_PRESETS.map((v) => {
+            const active = Number(data.budgetEstimate) === v;
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => update({ budgetEstimate: String(v) })}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-xs font-medium tabular-nums transition-all",
+                  active
+                    ? "border-accent bg-accent/15 text-accent shadow-[0_0_0_3px_hsl(var(--accent)/0.08)]"
+                    : "border-border bg-background/50 text-muted-foreground hover:border-accent/50 hover:text-foreground",
+                )}
+              >
+                ${v.toLocaleString("en-US")}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Date/Time picker — only if not ASAP */}
