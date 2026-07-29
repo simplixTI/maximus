@@ -136,7 +136,7 @@ const AdminServiceTypes = () => {
             </button>
             <div>
               <h1 className="font-display text-2xl font-bold leading-none text-foreground">
-                Job <span className="text-gradient-orange">Types</span>
+                Service <span className="text-gradient-orange">Types</span>
               </h1>
               <p className="mt-1.5 text-[11px] text-muted-foreground">
                 Categories offered to clients when creating a request.
