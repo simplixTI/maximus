@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, FileText } from "lucide-react";
+import { ArrowLeft, Send, FileText, MapPin, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { usePendingRequests, useSentQuotes, useCreateQuote } from "@/hooks/data";
 import PhotoGallery from "@/components/shared/PhotoGallery";
+import { cn } from "@/lib/utils";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-primary/15 text-primary",
@@ -16,6 +17,27 @@ const STATUS_STYLES: Record<string, string> = {
   revision_requested: "bg-yellow-500/15 text-yellow-500",
   expired: "bg-muted text-muted-foreground",
 };
+
+const fmtUsd = (n: number): string =>
+  new Intl.NumberFormat("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+
+type ClientProfile = {
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+};
+
+/** Combine service_requests.address with client_profiles.city/state/zip for
+ *  a fuller ops view. Falls back gracefully when parts are missing. */
+function locationLines(reqAddress: string | null | undefined, cp: ClientProfile | null | undefined) {
+  const primary =
+    reqAddress && reqAddress !== "Address on file"
+      ? reqAddress
+      : cp?.address || reqAddress || "";
+  const cityLine = [cp?.city, cp?.state, cp?.zip].filter(Boolean).join(", ");
+  return { primary, cityLine };
+}
 
 const AdminQuotes = () => {
   const navigate = useNavigate();
@@ -87,7 +109,30 @@ const AdminQuotes = () => {
                     </div>
                     <p className="text-sm text-accent mt-0.5 capitalize">{q.category}</p>
                     <p className="text-xs text-muted-foreground mt-1">{q.description}</p>
-                    {q.address && <p className="text-xs text-muted-foreground mt-1">📍 {q.address}</p>}
+
+                    {/* Location — full address + city/state/zip (from client_profile join) */}
+                    {(() => {
+                      const cp = (client as { client_profile?: ClientProfile } | null)
+                        ?.client_profile ?? null;
+                      const loc = locationLines(q.address, cp);
+                      if (!loc.primary && !loc.cityLine) return null;
+                      return (
+                        <div className="mt-2 flex items-start gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2">
+                          <MapPin className="h-3.5 w-3.5 shrink-0 text-accent mt-0.5" />
+                          <div className="min-w-0 flex-1">
+                            {loc.primary && (
+                              <p className="truncate text-xs font-medium text-foreground">{loc.primary}</p>
+                            )}
+                            {loc.cityLine && (
+                              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                                {loc.cityLine}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {Array.isArray((q as { photos?: string[] }).photos) && ((q as { photos?: string[] }).photos?.length ?? 0) > 0 && (
                       <div className="mt-3">
                         <PhotoGallery
@@ -97,6 +142,52 @@ const AdminQuotes = () => {
                         />
                       </div>
                     )}
+
+                    {/* Client budget target — the anchor for pricing decisions */}
+                    {(() => {
+                      const budget = (q as { estimated_budget?: number | string | null })
+                        .estimated_budget;
+                      const budgetNum =
+                        budget == null
+                          ? null
+                          : typeof budget === "string"
+                            ? parseFloat(budget)
+                            : budget;
+                      if (budgetNum == null || Number.isNaN(budgetNum) || budgetNum <= 0) {
+                        return (
+                          <div className="mt-3 flex items-center gap-2 rounded-xl border border-dashed border-border bg-background/30 px-3 py-2 text-[11px] text-muted-foreground">
+                            <Target className="h-3.5 w-3.5" />
+                            No budget provided by client
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="mt-3 relative overflow-hidden rounded-xl border border-accent/30 bg-accent/[0.04] px-4 py-3">
+                          <div
+                            aria-hidden
+                            className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-accent/20 opacity-60 blur-2xl"
+                          />
+                          <div className="relative flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Target className="h-3.5 w-3.5 text-accent" />
+                              <span className="font-display text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                                Client Budget
+                              </span>
+                            </div>
+                            <div className="flex items-baseline gap-0.5 tabular-nums">
+                              <span className="font-display text-lg font-light text-accent leading-none">$</span>
+                              <span className="font-display text-2xl font-bold text-accent leading-none">
+                                {fmtUsd(budgetNum)}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="relative mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
+                            Client's declared range. Match, price above with justification, or come in below to win.
+                          </p>
+                        </div>
+                      );
+                    })()}
+
                     <div className="mt-3 space-y-2">
                       <Input
                         value={form.amount}
@@ -105,6 +196,49 @@ const AdminQuotes = () => {
                         type="number"
                         className="h-10 rounded-lg border-border bg-secondary text-foreground"
                       />
+
+                      {/* Live delta vs client budget — appears only when both are set */}
+                      {(() => {
+                        const budget = (q as { estimated_budget?: number | string | null })
+                          .estimated_budget;
+                        const budgetNum =
+                          budget == null
+                            ? null
+                            : typeof budget === "string"
+                              ? parseFloat(budget)
+                              : budget;
+                        const amount = parseFloat(form.amount);
+                        if (
+                          budgetNum == null ||
+                          Number.isNaN(budgetNum) ||
+                          budgetNum <= 0 ||
+                          Number.isNaN(amount) ||
+                          amount <= 0
+                        )
+                          return null;
+                        const diff = amount - budgetNum;
+                        const pct = (diff / budgetNum) * 100;
+                        if (Math.abs(diff) < 0.5) {
+                          return (
+                            <p className="pl-1 text-[11px] font-medium text-accent tabular-nums">
+                              ✓ Matches client budget exactly
+                            </p>
+                          );
+                        }
+                        const over = diff > 0;
+                        return (
+                          <p
+                            className={cn(
+                              "pl-1 text-[11px] font-medium tabular-nums",
+                              over ? "text-destructive/90" : "text-emerald-500",
+                            )}
+                          >
+                            {over ? "▲" : "▼"} ${fmtUsd(Math.abs(diff))} ({pct.toFixed(1)}%){" "}
+                            {over ? "above" : "below"} client budget
+                          </p>
+                        );
+                      })()}
+
                       <Textarea
                         value={form.scope}
                         onChange={(e) => setForm(q.id, "scope", e.target.value)}

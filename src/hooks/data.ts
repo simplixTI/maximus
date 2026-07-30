@@ -328,7 +328,9 @@ export function usePendingRequests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_requests")
-        .select("id, category, description, address, photos, created_at, client:profiles(full_name, email)")
+        .select(
+          "id, category, description, address, photos, estimated_budget, created_at, client:profiles(full_name, email, client_profile:client_profiles(address, city, state, zip))",
+        )
         .eq("status", "draft")
         .order("created_at", { ascending: false });
       if (error) throw error;
